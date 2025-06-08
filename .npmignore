@@ -1,0 +1,68 @@
+# Source files (only include compiled dist)
+src/
+tests/
+
+# Development files
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Configuration files
+tsconfig.json
+.editorconfig
+.prettierrc
+.eslintrc*
+
+# Git files
+.git/
+.gitignore
+.gitattributes
+
+# IDE files
+.vscode/
+.idea/
+.zed/
+.claude/
+*.swp
+*.swo
+*~
+
+# Build artifacts
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Documentation source
+docs/
+
+# Scripts
+scripts/
+Makefile
+
+# Test files
+coverage/
+.nyc_output/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+
+# Local data (should not be published)
+.data/
+data/
+
+# Keep these files
+!dist/
+!README.md
+!LICENSE
+!CHANGELOG.md
+!package.json

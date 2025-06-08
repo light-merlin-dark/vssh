@@ -1,0 +1,117 @@
+.PHONY: install build dev clean publish test lint help login check-auth whoami link unlink version patch minor major pre-publish
+
+# Load environment variables from .env if it exists
+-include .env
+export
+
+# Default target
+help:
+	@echo "Available commands:"
+	@echo ""
+	@echo "Development:"
+	@echo "  make install    - Install dependencies"
+	@echo "  make build      - Build the TypeScript project"
+	@echo "  make dev        - Run in development mode"
+	@echo "  make clean      - Clean build artifacts"
+	@echo "  make lint       - Run TypeScript type checking"
+	@echo "  make test       - Run tests"
+	@echo ""
+	@echo "NPM Registry:"
+	@echo "  make login      - Login to npm with token from .env"
+	@echo "  make check-auth - Check npm authentication status"
+	@echo "  make whoami     - Show current npm user"
+	@echo "  make publish    - Build and publish to npm registry"
+	@echo ""
+	@echo "Version Management:"
+	@echo "  make version    - Show current version"
+	@echo "  make patch      - Bump patch version (1.0.0 -> 1.0.1)"
+	@echo "  make minor      - Bump minor version (1.0.0 -> 1.1.0)"
+	@echo "  make major      - Bump major version (1.0.0 -> 2.0.0)"
+	@echo ""
+	@echo "Local Testing:"
+	@echo "  make link       - Link package globally for local testing"
+	@echo "  make unlink     - Unlink global package"
+	@echo ""
+	@echo "Git Operations:"
+	@echo "  make push       - Auto-commit and push to GitHub (uses 'm push')"
+	@echo ""
+	@echo "Publishing:"
+	@echo "  make pre-publish - Run all checks before publishing"
+
+install:
+	npm install
+
+build:
+	npm run build
+
+dev:
+	npm run dev
+
+clean:
+	rm -rf dist/
+	rm -rf node_modules/
+	rm -f *.log
+
+publish: build
+	npm publish --access public
+
+test:
+	npm test
+
+lint:
+	npm run lint
+
+# Quick rebuild
+rebuild: clean install build
+
+# NPM Registry Commands
+login:
+	@if [ -z "$(NPM_ACCESS_TOKEN)" ]; then \
+		echo "Error: NPM_ACCESS_TOKEN not found in .env file"; \
+		exit 1; \
+	fi
+	@echo "//registry.npmjs.org/:_authToken=$(NPM_ACCESS_TOKEN)" > ~/.npmrc
+	@echo "Logged in to npm registry with token from .env"
+
+check-auth:
+	@npm whoami --scope=@light-merlin-dark || echo "Not authenticated. Run 'make login' first."
+
+whoami:
+	@npm whoami
+
+# Version Management
+version:
+	@node -p "require('./package.json').version"
+
+patch: build
+	npm version patch
+	@echo "Version bumped to $$(make version)"
+
+minor: build
+	npm version minor
+	@echo "Version bumped to $$(make version)"
+
+major: build
+	npm version major
+	@echo "Version bumped to $$(make version)"
+
+# Local Testing
+link: build
+	npm link
+	@echo "Package linked globally. You can now use 'cch' command."
+
+unlink:
+	npm unlink -g @light-merlin-dark/claude-code-helper
+	@echo "Package unlinked globally."
+
+push:
+	@m push
+
+# Pre-publish check
+pre-publish: lint build test
+	@echo "Checking package before publish..."
+	@npm pack --dry-run
+	@echo ""
+	@echo "Package is ready to publish!"
+	@echo "Current version: $$(make version)"
+	@echo "Run 'make publish' to publish to npm"
