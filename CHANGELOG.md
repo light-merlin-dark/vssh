@@ -5,18 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.1.0] - 2025-01-10
+## [1.2.0] - 2025-01-10
 
 ### Added
-- New `-c` and `--command` flags for AI-friendly command execution
-- Better support for AI permission patterns like `vssh -c:*`
-- Documentation and examples for the new command flag usage
+- Native Model Context Protocol (MCP) support for integration with Claude Code and Claude Desktop
+- New `vssh-mcp` binary that exposes vssh as an MCP server
+- MCP `run_command` tool for executing SSH commands through the MCP interface
+- Support for `-c` and `--command` flags for command execution (kept for compatibility)
+- MCP integration documentation and setup instructions
 
 ### Changed
+- Updated help text to promote quoted command syntax for AI assistants
+- Enhanced package.json with MCP-related keywords and dependencies
 - Improved command parsing to support single argument command strings
-- Updated help text to prominently feature the new `-c` flag option
+- CommandGuard now displays warnings for suspicious patterns even when commands are not blocked
 
-## [1.2.0] - 2025-01-08
+## [1.0.1] - 2025-01-08
 
 ### Added
 - Interactive SSH configuration setup with `vssh --setup`
@@ -34,17 +38,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Removed hardcoded project paths for portability
 - Improved error handling for missing SSH configuration
-
-## [1.1.0] - 2025-01-07
-
-### Added
-- Enhanced help text optimized for AI assistants
-- Clear examples for Docker and system commands
-- Notes section specifically for AI usage patterns
-
-### Changed
-- Improved command reconstruction for better quote handling
-- Updated safety messages to be more informative
 
 ## [1.0.0] - 2025-01-06
 

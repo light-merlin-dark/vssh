@@ -12,8 +12,7 @@ DESCRIPTION:
 
 SYNTAX:
   vssh <command> [arguments...]
-  vssh -c "<command>"         # Command as single argument (AI-friendly)
-  vssh --command "<command>"  # Same as -c
+  vssh "full command string"  # AI-friendly: entire command in quotes
   vssh --setup                # Interactive setup wizard
   vssh --help                 # Show this help message
 
@@ -25,13 +24,9 @@ FEATURES FOR AI ASSISTANTS:
 
 BASIC USAGE:
   vssh ls                     # Simple command
-  vssh ls -la /var/log        # Command with arguments
+  vssh ls -la /var/log        # Command with arguments  
+  vssh "docker ps -a"         # Full command in quotes (AI-friendly)
   vssh echo "hello world"     # Double quotes OK for arguments
-  
-  WITH -c FLAG (AI-FRIENDLY):
-  vssh -c "ls"                # Simple command
-  vssh -c "ls -la /var/log"   # Command with arguments
-  vssh -c "docker ps -a"      # All args in one string
 
 DOCKER COMMANDS:
   vssh docker ps              # List containers
@@ -59,8 +54,8 @@ CONFIGURATION:
     VSSH_KEY_PATH  SSH private key path
 
 IMPORTANT FOR AI TOOLS:
-  • NEVER wrap entire command in double quotes: ❌ vssh "docker ps"
-  • Simple commands need no quotes: ✅ vssh docker ps
+  • For best AI compatibility, wrap entire commands in quotes: ✅ vssh "docker ps -a"
+  • Simple commands work without quotes too: ✅ vssh docker ps
   • Use single quotes for shell features: ✅ vssh 'ps | grep app'
 `);
 }

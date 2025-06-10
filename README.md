@@ -1,6 +1,6 @@
 # vssh 🤖
 
-An AI-friendly SSH command proxy that makes remote server management safer and more natural. Designed specifically for seamless integration with AI assistants like Claude, ChatGPT, and other LLMs.
+An AI-friendly SSH command proxy that makes remote server management safer and more natural. Designed specifically for seamless integration with AI assistants like Claude, ChatGPT, and other LLMs. Now supports the Model Context Protocol (MCP) for native integration with Claude Code and Claude Desktop.
 
 ## 🎯 Built for AI Assistants
 
@@ -13,6 +13,16 @@ vssh solves a critical problem: AI assistants often struggle with SSH command sy
 
 ## ✨ Key Features
 
+### 🔌 Native MCP Support
+```bash
+# Use with Claude Code or Claude Desktop
+claude mcp add-json vssh '{
+  "type":"stdio",
+  "command":"vssh-mcp",
+  "env":{"NODE_NO_WARNINGS":"1"}
+}'
+```
+
 ### 🤖 AI-Optimized Interface
 ```bash
 # AI assistants can use natural commands without complex quoting
@@ -20,9 +30,9 @@ vssh docker ps
 vssh docker logs my-app --tail 50
 vssh 'ps aux | grep node'  # Single quotes for pipes
 
-# NEW: Use -c flag for better AI permission compatibility
-vssh -c "docker ps -a"      # Perfect for permission patterns like vssh -c:*
-vssh -c "ls -la /var/log"   # All arguments in one quoted string
+# AI-friendly quoted syntax
+vssh "docker ps -a"         # Entire command in quotes
+vssh "ls -la /var/log"      # Perfect for AI permission patterns
 
 # No more struggling with SSH syntax
 # ❌ ssh user@host "docker exec -it container bash -c 'cat /etc/config'"
@@ -81,13 +91,58 @@ vssh free -m
 # Commands with arguments
 vssh docker logs my-container --tail 100
 
-# NEW: AI-friendly -c flag (recommended for AI assistants)
-vssh -c "docker ps"          # Simple command
-vssh -c "ls -la /var/log"    # Command with arguments  
-vssh --command "free -m"     # Long form of -c
+# AI-friendly quoted syntax
+vssh "docker ps"             # Entire command in quotes
+vssh "ls -la /var/log"       # Perfect for AI assistants
 
 # Complex commands with pipes (use single quotes)
 vssh 'docker ps --format "table {{.Names}}\t{{.Status}}" | grep healthy'
+```
+
+## 🔌 Using with Model Context Protocol (MCP)
+
+vssh now includes native MCP support for seamless integration with Claude Code and Claude Desktop.
+
+### MCP Setup
+
+1. **Install vssh globally**:
+   ```bash
+   npm install -g @light-merlin-dark/vssh
+   ```
+
+2. **Add to Claude Code**:
+   ```bash
+   # Find the path to vssh-mcp
+   which vssh-mcp
+   
+   # Add to Claude Code (replace path with your actual path)
+   claude mcp add-json vssh '{
+     "type":"stdio",
+     "command":"/usr/local/bin/vssh-mcp",
+     "env":{"NODE_NO_WARNINGS":"1"}
+   }'
+   ```
+
+3. **Or add to project-level `.mcp.json`**:
+   ```json
+   {
+     "vssh": {
+       "type": "stdio",
+       "command": "/usr/local/bin/vssh-mcp",
+       "env": {"NODE_NO_WARNINGS": "1"}
+     }
+   }
+   ```
+
+### MCP Tool Usage
+
+Once configured, Claude will have access to the `run_command` tool:
+
+```
+Tool: run_command
+Description: Execute a shell command on the remote host
+Parameters:
+  - command (string, required): Full shell command exactly as it would be typed in a terminal
 ```
 
 ## 🎯 Perfect for AI Workflows
@@ -96,7 +151,7 @@ vssh 'docker ps --format "table {{.Names}}\t{{.Status}}" | grep healthy'
 
 1. **No Quote Wrestling**: Commands work naturally without complex escaping
 2. **Predictable Permissions**: Simple patterns like `Bash(vssh:*)` just work
-3. **NEW: -c Flag Support**: Enable patterns like `vssh -c:*` for easier permission management
+3. **Native MCP Support**: Direct integration with Claude Code and Claude Desktop
 4. **Clear Feedback**: Every command shows execution status and timing
 5. **Safety Net**: Dangerous commands are caught before execution
 

@@ -9,6 +9,16 @@ export async function executeProxy(args: string[]) {
 
   // Check command safety
   const guardResult = CommandGuard.checkCommand(command);
+  
+  // Display warnings, if any
+  if (guardResult.reasons.length > 0) {
+    guardResult.reasons.forEach(reason => {
+      if (reason.startsWith('⚠️')) {
+        console.warn(reason);
+      }
+    });
+  }
+  
   if (guardResult.isBlocked) {
     CommandGuard.displayBlockedMessage(command, guardResult);
     CommandGuard.logBlockedCommand(command, guardResult);
