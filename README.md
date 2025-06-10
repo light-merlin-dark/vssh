@@ -20,6 +20,10 @@ vssh docker ps
 vssh docker logs my-app --tail 50
 vssh 'ps aux | grep node'  # Single quotes for pipes
 
+# NEW: Use -c flag for better AI permission compatibility
+vssh -c "docker ps -a"      # Perfect for permission patterns like vssh -c:*
+vssh -c "ls -la /var/log"   # All arguments in one quoted string
+
 # No more struggling with SSH syntax
 # ❌ ssh user@host "docker exec -it container bash -c 'cat /etc/config'"
 # ✅ vssh docker exec container cat /etc/config
@@ -77,6 +81,11 @@ vssh free -m
 # Commands with arguments
 vssh docker logs my-container --tail 100
 
+# NEW: AI-friendly -c flag (recommended for AI assistants)
+vssh -c "docker ps"          # Simple command
+vssh -c "ls -la /var/log"    # Command with arguments  
+vssh --command "free -m"     # Long form of -c
+
 # Complex commands with pipes (use single quotes)
 vssh 'docker ps --format "table {{.Names}}\t{{.Status}}" | grep healthy'
 ```
@@ -87,8 +96,9 @@ vssh 'docker ps --format "table {{.Names}}\t{{.Status}}" | grep healthy'
 
 1. **No Quote Wrestling**: Commands work naturally without complex escaping
 2. **Predictable Permissions**: Simple patterns like `Bash(vssh:*)` just work
-3. **Clear Feedback**: Every command shows execution status and timing
-4. **Safety Net**: Dangerous commands are caught before execution
+3. **NEW: -c Flag Support**: Enable patterns like `vssh -c:*` for easier permission management
+4. **Clear Feedback**: Every command shows execution status and timing
+5. **Safety Net**: Dangerous commands are caught before execution
 
 ### Common AI Tasks Made Simple
 

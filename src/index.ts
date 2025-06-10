@@ -12,6 +12,8 @@ DESCRIPTION:
 
 SYNTAX:
   vssh <command> [arguments...]
+  vssh -c "<command>"         # Command as single argument (AI-friendly)
+  vssh --command "<command>"  # Same as -c
   vssh --setup                # Interactive setup wizard
   vssh --help                 # Show this help message
 
@@ -25,6 +27,11 @@ BASIC USAGE:
   vssh ls                     # Simple command
   vssh ls -la /var/log        # Command with arguments
   vssh echo "hello world"     # Double quotes OK for arguments
+  
+  WITH -c FLAG (AI-FRIENDLY):
+  vssh -c "ls"                # Simple command
+  vssh -c "ls -la /var/log"   # Command with arguments
+  vssh -c "docker ps -a"      # All args in one string
 
 DOCKER COMMANDS:
   vssh docker ps              # List containers
@@ -81,8 +88,24 @@ async function main() {
     process.exit(1);
   }
 
+  // Parse command
+  let commandArgs: string[];
+  
+  // Handle -c or --command flag
+  if (args[0] === '-c' || args[0] === '--command') {
+    if (args.length < 2) {
+      console.error('❌ Error: -c/--command requires a command string');
+      process.exit(1);
+    }
+    // Take the next argument as the complete command
+    commandArgs = [args[1]];
+  } else {
+    // Original behavior: treat all args as the command
+    commandArgs = args;
+  }
+
   // Execute command
-  await executeProxy(args);
+  await executeProxy(commandArgs);
 }
 
 main().catch(error => {

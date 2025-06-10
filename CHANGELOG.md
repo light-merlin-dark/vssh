@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2025-01-10
+
+### Added
+- New `-c` and `--command` flags for AI-friendly command execution
+- Better support for AI permission patterns like `vssh -c:*`
+- Documentation and examples for the new command flag usage
+
+### Changed
+- Improved command parsing to support single argument command strings
+- Updated help text to prominently feature the new `-c` flag option
+
 ## [1.2.0] - 2025-01-08
 
 ### Added
