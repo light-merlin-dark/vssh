@@ -1,13 +1,13 @@
 # vssh 🤖
 
-**The Model Context Protocol (MCP) enabled SSH proxy for AI assistants.** 
+**The Model Context Protocol (MCP) enabled SSH proxy for AI agents.** 
 
-Built from the ground up for seamless integration with Claude Code, Claude Desktop, and other AI tools that support MCP. vssh transforms how AI assistants manage remote servers by providing a safe, intuitive, and extensible command interface.
+Built from the ground up for seamless integration with Claude Code, Claude Desktop, and other AI tools that support MCP. vssh transforms how AI agents manage remote servers by providing a safe, intuitive, and extensible command interface.
 
 ## 🚀 Why vssh?
 
 ### Native MCP Integration
-vssh is a first-class MCP tool, meaning AI assistants can:
+vssh is a first-class MCP tool, meaning AI agents can:
 - Execute server commands naturally without complex SSH syntax
 - Access powerful plugin-based commands for Docker, Coolify, and more
 - Benefit from built-in safety guards that prevent destructive operations
@@ -41,7 +41,7 @@ claude mcp add-json vssh '{
 ```
 
 ### Available MCP Tools
-Once configured, AI assistants gain access to:
+Once configured, AI agents gain access to:
 - `run_command` - Execute any SSH command with safety checks
 - `get_local_mode` - Check if commands execute locally or remotely
 - `set_local_mode` - Toggle between local and remote execution
@@ -62,7 +62,7 @@ All commands now execute through a centralized proxy system:
 
 ### 🤖 AI-Optimized Interface
 ```bash
-# AI assistants can use natural commands without complex quoting
+# AI agents can use natural commands without complex quoting
 vssh docker ps
 vssh docker logs my-app --tail 50
 vssh 'ps aux | grep node'  # Single quotes for pipes
@@ -128,7 +128,7 @@ vssh ls -la
 vssh free -m
 
 # AI-friendly quoted syntax
-vssh "ls -la /var/log"       # Perfect for AI assistants
+vssh "ls -la /var/log"       # Perfect for AI agents
 
 # Complex commands with pipes (use single quotes)
 vssh 'ps aux | grep node'
