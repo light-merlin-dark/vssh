@@ -1,27 +1,55 @@
 # vssh 🤖
 
-An AI-friendly SSH command proxy that makes remote server management safer and more natural. Designed specifically for seamless integration with AI assistants like Claude, ChatGPT, and other LLMs. Now supports the Model Context Protocol (MCP) for native integration with Claude Code and Claude Desktop.
+**The Model Context Protocol (MCP) enabled SSH proxy for AI assistants.** 
 
-## 🎯 Built for AI Assistants
+Built from the ground up for seamless integration with Claude Code, Claude Desktop, and other AI tools that support MCP. vssh transforms how AI assistants manage remote servers by providing a safe, intuitive, and extensible command interface.
 
-vssh solves a critical problem: AI assistants often struggle with SSH command syntax and safety when managing remote servers. This tool provides:
+## 🚀 Why vssh?
 
-- **Natural Command Flow**: No complex SSH flags or escaping - just `vssh docker ps`
-- **Smart Quote Handling**: AI assistants can use commands naturally without worrying about quote escaping
-- **Permission-Friendly**: Works perfectly with Claude Code's permission system
-- **Safety by Default**: Prevents accidental execution of destructive commands
+### Native MCP Integration
+vssh is a first-class MCP tool, meaning AI assistants can:
+- Execute server commands naturally without complex SSH syntax
+- Access powerful plugin-based commands for Docker, Coolify, and more
+- Benefit from built-in safety guards that prevent destructive operations
+- Work within permission systems without quote escaping headaches
 
-## ✨ Key Features
+### Plugin Architecture
+Extend vssh with specialized functionality:
+- **Docker Plugin**: Container management made simple (`ldc`, `sdl`, `sdi`)
+- **Coolify Plugin**: Platform-specific operations (`gcp`, `lcd`)
+- **Custom Plugins**: Build your own for your specific needs
 
-### 🔌 Native MCP Support
+### AI-First Design
+- Commands that "just work" - no SSH flag complexity
+- Intelligent command parsing that understands AI patterns
+- Clear, structured output perfect for AI interpretation
+- Comprehensive audit trails for accountability
+
+## 🔌 Model Context Protocol (MCP) Setup
+
+### Quick Start with Claude Code
 ```bash
-# Use with Claude Code or Claude Desktop
+# Install vssh globally
+npm install -g @light-merlin-dark/vssh
+
+# Add to Claude Code
 claude mcp add-json vssh '{
   "type":"stdio",
   "command":"vssh-mcp",
   "env":{"NODE_NO_WARNINGS":"1"}
 }'
 ```
+
+### Available MCP Tools
+Once configured, AI assistants gain access to:
+- `run_command` - Execute any SSH command with safety checks
+- `list_docker_containers` - List all containers (Docker plugin)
+- `show_docker_logs` - View container logs (Docker plugin)
+- `show_docker_info` - System information dashboard (Docker plugin)
+- `get_coolify_proxy_config` - Coolify configuration (Coolify plugin)
+- And many more plugin-based tools!
+
+## ✨ Key Features
 
 ### 🤖 AI-Optimized Interface
 ```bash
@@ -77,101 +105,114 @@ This interactive setup will:
 2. Ask you to select or specify an SSH key
 3. Configure your target server (hostname/IP)
 4. Save configuration to `~/.vssh/config.json`
+5. Enable default plugins (Docker and Coolify)
 
 ### Basic Usage
+
+#### Core Commands
 ```bash
 # View help and examples
 vssh --help
 
 # Run simple commands
 vssh ls -la
-vssh docker ps
 vssh free -m
 
-# Commands with arguments
-vssh docker logs my-container --tail 100
-
 # AI-friendly quoted syntax
-vssh "docker ps"             # Entire command in quotes
 vssh "ls -la /var/log"       # Perfect for AI assistants
 
 # Complex commands with pipes (use single quotes)
-vssh 'docker ps --format "table {{.Names}}\t{{.Status}}" | grep healthy'
+vssh 'ps aux | grep node'
 ```
 
-## 🔌 Using with Model Context Protocol (MCP)
+#### Plugin Commands
+```bash
+# Docker plugin commands (short aliases)
+vssh ldc                      # List docker containers
+vssh gdc myapp                # Get docker container
+vssh sdl web --tail 100       # Show docker logs
+vssh ldp                      # List docker ports
+vssh ldn                      # List docker networks
+vssh sdi                      # Show docker info
 
-vssh now includes native MCP support for seamless integration with Claude Code and Claude Desktop.
+# Coolify plugin commands
+vssh gcp                      # Get coolify proxy config
+vssh lcd                      # List coolify dynamic configs
 
-### MCP Setup
-
-1. **Install vssh globally**:
-   ```bash
-   npm install -g @light-merlin-dark/vssh
-   ```
-
-2. **Add to Claude Code**:
-   ```bash
-   # Find the path to vssh-mcp
-   which vssh-mcp
-   
-   # Add to Claude Code (replace path with your actual path)
-   claude mcp add-json vssh '{
-     "type":"stdio",
-     "command":"/usr/local/bin/vssh-mcp",
-     "env":{"NODE_NO_WARNINGS":"1"}
-   }'
-   ```
-
-3. **Or add to project-level `.mcp.json`**:
-   ```json
-   {
-     "vssh": {
-       "type": "stdio",
-       "command": "/usr/local/bin/vssh-mcp",
-       "env": {"NODE_NO_WARNINGS": "1"}
-     }
-   }
-   ```
-
-### MCP Tool Usage
-
-Once configured, Claude will have access to the `run_command` tool:
-
+# Plugin management
+vssh plugins list             # List all plugins
+vssh plugins enable docker    # Enable a plugin
+vssh plugins info docker      # Show plugin details
 ```
-Tool: run_command
-Description: Execute a shell command on the remote host
-Parameters:
-  - command (string, required): Full shell command exactly as it would be typed in a terminal
+
+## 🧩 Plugin System
+
+vssh features a powerful plugin architecture that extends functionality while maintaining safety and MCP compatibility.
+
+### Built-in Plugins
+
+#### Docker Plugin
+Comprehensive Docker management commands:
+- `list-docker-containers` (ldc) - List all containers
+- `get-docker-container` (gdc) - Find specific container
+- `show-docker-logs` (sdl) - View container logs
+- `list-docker-ports` (ldp) - Show port mappings
+- `list-docker-networks` (ldn) - List networks
+- `show-docker-info` (sdi) - System information dashboard
+
+#### Coolify Plugin
+Coolify-specific operations:
+- `get-coolify-proxy-config` (gcp) - Traefik proxy configuration
+- `list-coolify-dynamic-configs` (lcd) - Dynamic configurations
+
+### Managing Plugins
+```bash
+# List all plugins and their status
+vssh plugins list
+
+# Enable/disable plugins
+vssh plugins enable docker
+vssh plugins disable coolify
+
+# Get detailed plugin information
+vssh plugins info docker
 ```
+
+### Plugin Benefits
+- **Modular**: Enable only what you need
+- **Safe**: Plugins can add custom safety guards
+- **MCP-Ready**: All plugin commands are exposed as MCP tools
+- **Extensible**: Easy to create custom plugins
 
 ## 🎯 Perfect for AI Workflows
 
 ### Why AI Assistants Love vssh
 
-1. **No Quote Wrestling**: Commands work naturally without complex escaping
-2. **Predictable Permissions**: Simple patterns like `Bash(vssh:*)` just work
-3. **Native MCP Support**: Direct integration with Claude Code and Claude Desktop
-4. **Clear Feedback**: Every command shows execution status and timing
-5. **Safety Net**: Dangerous commands are caught before execution
+1. **MCP Native**: First-class support for Model Context Protocol
+2. **Plugin Power**: Specialized commands for common tasks
+3. **No Quote Wrestling**: Commands work naturally without complex escaping
+4. **Predictable Permissions**: Simple patterns like `Bash(vssh:*)` just work
+5. **Clear Feedback**: Structured output perfect for AI interpretation
+6. **Safety Net**: Multi-layer protection against dangerous commands
 
 ### Common AI Tasks Made Simple
 
 ```bash
-# Docker Management
-vssh docker ps
-vssh docker logs app --tail 50
-vssh docker exec db mysql -e "SHOW DATABASES"
-vssh 'docker stats --no-stream --format "table {{.Container}}\t{{.CPUPerc}}\t{{.MemUsage}}"'
+# Docker Management (via plugin)
+vssh ldc                          # Quick container list
+vssh sdl myapp --tail 50          # View logs easily
+vssh sdi                          # Full system dashboard
 
 # System Monitoring
 vssh df -h
 vssh free -m
 vssh 'ps aux | head -20'
-vssh 'tail -f /var/log/nginx/access.log | grep 404'
 
-# File Operations
-vssh ls -la /etc/nginx/
+# Coolify Operations (via plugin)
+vssh gcp                          # Get proxy configuration
+vssh lcd                          # List dynamic configs
+
+# Direct Commands
 vssh cat /etc/nginx/nginx.conf
 vssh 'find /var/log -name "*.log" -size +100M'
 ```
@@ -184,7 +225,14 @@ Configuration is stored in `~/.vssh/config.json`:
 {
   "host": "your-server.com",
   "user": "root",
-  "keyPath": "/Users/you/.ssh/id_rsa"
+  "keyPath": "/Users/you/.ssh/id_rsa",
+  "plugins": {
+    "enabled": ["docker", "coolify"],
+    "config": {
+      "docker": {},
+      "coolify": {}
+    }
+  }
 }
 ```
 
@@ -195,12 +243,19 @@ You can also use environment variables:
 
 ## 🛡️ Safety Features
 
-The command guard protects against:
-- Root filesystem deletion
-- Direct disk write operations
-- Mass Docker destruction
-- Critical service disruption
-- System shutdown/reboot
+Multi-layer protection system:
+
+### Core Guards
+- Root filesystem deletion prevention
+- Direct disk write operation blocking
+- Mass Docker destruction protection
+- Critical service disruption prevention
+- System shutdown/reboot blocking
+
+### Plugin Guards
+- Plugins can add custom safety rules
+- Coolify plugin protects configuration directories
+- Extensible for domain-specific safety
 
 All blocked commands are logged to `~/.vssh/data/logs/blocked_commands.log`.
 
@@ -235,6 +290,31 @@ npm run build
 # Run tests
 npm test
 ```
+
+### 🧪 Testing Philosophy
+
+vssh uses a **plugin-centric testing approach** that promotes modularity and independence:
+
+- **Core Tests** (`/tests`): Validate the framework, plugin system, and core utilities only
+- **Plugin Tests** (`/src/plugins/*/tests`): Each plugin manages its own test suite
+
+This separation ensures plugins remain truly independent while leveraging shared testing utilities.
+
+```bash
+# Run core framework tests only
+npm test
+
+# Run all plugin tests
+npm run test:plugins
+
+# Run everything (core + plugins)
+npm run test:all
+
+# Test a specific plugin
+npm run test:plugin docker
+```
+
+For detailed testing documentation, see [docs/testing.md](docs/testing.md).
 
 ## License
 

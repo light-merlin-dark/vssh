@@ -1,0 +1,13 @@
+{
+  "host": "test.example.com",
+  "user": "testuser",
+  "keyPath": "/home/testuser/.ssh/test_rsa",
+  "plugins": {
+    "enabled": ["docker", "coolify"],
+    "disabled": [],
+    "config": {
+      "docker": {},
+      "coolify": {}
+    }
+  }
+}

@@ -1,9 +1,9 @@
 import { Client } from 'ssh2';
 import { readFileSync } from 'fs';
-import type { SSHConfig } from '../types';
+import type { Config } from '../config';
 
 export class SSHService {
-  constructor(private config: SSHConfig) {}
+  constructor(private config: Config) {}
 
   async executeCommand(command: string): Promise<string> {
     return new Promise((resolve, reject) => {

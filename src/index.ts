@@ -1,6 +1,12 @@
 #!/usr/bin/env node
 import { executeProxy } from './proxy';
-import { loadConfig, setupInteractiveConfig } from './config';
+import { loadConfig, setupInteractiveConfig, Config } from './config';
+import { PluginRegistry, PluginLoader } from './plugins';
+import { SSHService } from './services/ssh';
+import { CommandGuardService } from './services/command-guard-service';
+import { handlePluginsCommand } from './cli/plugins';
+import * as fs from 'fs/promises';
+import * as path from 'path';
 
 function showHelp() {
   console.log(`
@@ -28,11 +34,19 @@ BASIC USAGE:
   vssh "docker ps -a"         # Full command in quotes (AI-friendly)
   vssh echo "hello world"     # Double quotes OK for arguments
 
-DOCKER COMMANDS:
-  vssh docker ps              # List containers
-  vssh docker ps -a           # List all containers
-  vssh docker logs app        # View container logs
-  vssh docker exec app ls     # Execute command in container
+DOCKER PLUGIN COMMANDS:
+  vssh plugins list           # List available plugins
+  vssh plugins enable docker  # Enable a plugin
+  vssh plugins disable docker # Disable a plugin
+  vssh plugins info docker    # Show plugin details
+
+DOCKER PLUGIN COMMANDS (when enabled):
+  vssh ldc                    # List docker containers
+  vssh gdc <name>             # Get docker container
+  vssh sdl <name>             # Show docker logs
+  vssh ldp                    # List docker ports
+  vssh ldn                    # List docker networks
+  vssh sdi                    # Show docker info
 
 SYSTEM COMMANDS:
   vssh df -h                  # Disk usage
@@ -83,27 +97,126 @@ async function main() {
     process.exit(1);
   }
 
-  // Parse command
-  let commandArgs: string[];
+  // Initialize plugin system
+  const logger = {
+    info: (msg: string) => console.log(`ℹ️  ${msg}`),
+    warn: (msg: string) => console.warn(`⚠️  ${msg}`),
+    error: (msg: string) => console.error(`❌ ${msg}`),
+    debug: (msg: string) => console.debug(`🔍 ${msg}`)
+  };
   
-  // Handle -c or --command flag
-  if (args[0] === '-c' || args[0] === '--command') {
-    if (args.length < 2) {
-      console.error('❌ Error: -c/--command requires a command string');
-      process.exit(1);
+  const sshService = new SSHService(config);
+  const commandGuard = new CommandGuardService();
+  const registry = new PluginRegistry(sshService, commandGuard, config, logger);
+  
+  // Apply plugin command guard extensions
+  commandGuard.addExtensions(registry.getCommandGuardExtensions());
+  
+  // Load built-in plugins
+  const loader = new PluginLoader();
+  const builtinPlugins = await loader.loadBuiltinPlugins();
+  
+  for (const plugin of builtinPlugins) {
+    try {
+      await registry.loadPlugin(plugin);
+    } catch (error: any) {
+      logger.error(`Failed to load plugin ${plugin.name}: ${error.message}`);
     }
-    // Take the next argument as the complete command
-    commandArgs = [args[1]];
-  } else {
-    // Original behavior: treat all args as the command
-    commandArgs = args;
+  }
+  
+  // Handle plugin management commands
+  if (args[0] === 'plugins' || args[0] === 'plugin') {
+    await handlePluginsCommand(registry, args.slice(1));
+    process.exit(0);
   }
 
-  // Execute command
-  await executeProxy(commandArgs);
+  // Check if this is a plugin command
+  const commandName = args[0];
+  const command = registry.getCommand(commandName);
+  
+  if (command) {
+    // Execute plugin command
+    const plugin = registry.getCommandPlugin(commandName);
+    if (!registry.isEnabled(plugin!.name)) {
+      console.error(`❌ Plugin '${plugin!.name}' is not enabled`);
+      console.error(`Run: vssh plugins enable ${plugin!.name}`);
+      process.exit(1);
+    }
+    
+    try {
+      // Parse arguments for plugin command
+      const parsedArgs = {
+        _: args,
+        ...parseFlags(args.slice(1))
+      };
+      
+      await command.handler({
+        sshService,
+        commandGuard,
+        config,
+        logger,
+        getPlugin: (name: string) => registry.getPlugin(name)
+      }, parsedArgs);
+    } catch (error: any) {
+      console.error(`❌ Command failed: ${error.message}`);
+      process.exit(1);
+    }
+  } else {
+    // Not a plugin command, use original proxy behavior
+    let commandArgs: string[];
+    
+    // Handle -c or --command flag
+    if (args[0] === '-c' || args[0] === '--command') {
+      if (args.length < 2) {
+        console.error('❌ Error: -c/--command requires a command string');
+        process.exit(1);
+      }
+      // Take the next argument as the complete command
+      commandArgs = [args[1]];
+    } else {
+      // Original behavior: treat all args as the command
+      commandArgs = args;
+    }
+
+    // Execute command via SSH proxy
+    await executeProxy(commandArgs, config, commandGuard);
+  }
 }
 
-main().catch(error => {
+// Simple flag parser for plugin commands
+function parseFlags(args: string[]): Record<string, any> {
+  const flags: Record<string, any> = {};
+  
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i];
+    
+    if (arg.startsWith('--')) {
+      const key = arg.slice(2);
+      const next = args[i + 1];
+      
+      if (next && !next.startsWith('-')) {
+        flags[key] = next;
+        i++;
+      } else {
+        flags[key] = true;
+      }
+    } else if (arg.startsWith('-') && arg.length === 2) {
+      const key = arg.slice(1);
+      const next = args[i + 1];
+      
+      if (next && !next.startsWith('-')) {
+        flags[key] = next;
+        i++;
+      } else {
+        flags[key] = true;
+      }
+    }
+  }
+  
+  return flags;
+}
+
+main().catch((error: any) => {
   console.error('❌ Fatal error:', error);
   process.exit(1);
 });

@@ -1,0 +1,72 @@
+{
+  "docker_ps": {
+    "command": "docker ps -a --format \"{{.ID}}|{{.Names}}|{{.Status}}|{{.Image}}|{{.Ports}}|{{.CreatedAt}}\"",
+    "responses": {
+      "empty": "",
+      "single": "abc123|my-app|Up 2 hours|node:18|0.0.0.0:3000->3000/tcp|2024-01-01 12:00:00 +0000 UTC",
+      "multiple": "abc123|web|Up 2 hours|nginx|0.0.0.0:80->80/tcp|2024-01-01 12:00:00 +0000 UTC\ndef456|api|Up 1 hour|node:18|0.0.0.0:3000->3000/tcp|2024-01-01 13:00:00 +0000 UTC\nghi789|db|Exited (0) 3 hours ago|postgres:15||2024-01-01 10:00:00 +0000 UTC",
+      "error_format": "Error response from daemon: Cannot connect to the Docker daemon"
+    }
+  },
+  "docker_logs": {
+    "command_template": "docker logs {{container}} --tail {{lines}}",
+    "responses": {
+      "normal": "2024-01-01 14:00:00 [info] Server started\n2024-01-01 14:00:01 [info] Listening on port 3000\n2024-01-01 14:00:02 [info] Connected to database",
+      "error": "Error: No such container: {{container}}",
+      "empty": ""
+    }
+  },
+  "docker_port": {
+    "command_template": "docker port {{container}}",
+    "responses": {
+      "single": "3000/tcp -> 0.0.0.0:3000",
+      "multiple": "80/tcp -> 0.0.0.0:80\n443/tcp -> 0.0.0.0:443\n3000/tcp -> 0.0.0.0:3000",
+      "none": "",
+      "error": "Error: No such container: {{container}}"
+    }
+  },
+  "docker_network": {
+    "command": "docker network ls --format \"{{.ID}}|{{.Name}}|{{.Driver}}|{{.Scope}}\"",
+    "responses": {
+      "default": "abc123|bridge|bridge|local\ndef456|host|host|local\nghi789|none|null|local",
+      "custom": "abc123|bridge|bridge|local\ndef456|host|host|local\nghi789|none|null|local\njkl012|myapp_network|bridge|local\nmno345|web_network|overlay|swarm"
+    }
+  },
+  "docker_info": {
+    "command": "docker info --format json",
+    "responses": {
+      "normal": {
+        "ServerVersion": "24.0.5",
+        "Containers": 5,
+        "ContainersRunning": 3,
+        "ContainersPaused": 0,
+        "ContainersStopped": 2,
+        "Images": 12,
+        "Driver": "overlay2",
+        "SystemTime": "2024-01-01T14:00:00.000000000Z",
+        "KernelVersion": "5.15.0-91-generic",
+        "OperatingSystem": "Ubuntu 22.04.3 LTS",
+        "OSType": "linux",
+        "Architecture": "x86_64",
+        "CPUs": 4,
+        "MemTotal": 8369217536,
+        "DockerRootDir": "/var/lib/docker",
+        "Debug": false,
+        "Swarm": {
+          "NodeID": "",
+          "LocalNodeState": "inactive"
+        }
+      },
+      "minimal": {
+        "ServerVersion": "20.10.0",
+        "Containers": 0,
+        "ContainersRunning": 0,
+        "Images": 0,
+        "OSType": "linux",
+        "Architecture": "x86_64",
+        "MemTotal": 4194304000,
+        "DockerRootDir": "/var/lib/docker"
+      }
+    }
+  }
+}

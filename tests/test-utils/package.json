@@ -1,0 +1,17 @@
+{
+  "name": "@vssh/test-utils",
+  "version": "1.0.0",
+  "description": "Testing utilities for vssh plugins",
+  "main": "index.ts",
+  "types": "index.ts",
+  "exports": {
+    ".": "./index.ts",
+    "./mock-context": "./mock-context.ts",
+    "./mock-ssh-service": "./mock-ssh-service.ts",
+    "./capture-output": "./capture-output.ts",
+    "./fixtures": "./fixtures.ts"
+  },
+  "peerDependencies": {
+    "vitest": "^3.0.0"
+  }
+}

@@ -4,7 +4,7 @@
     "module": "commonjs",
     "moduleResolution": "node",
     "lib": ["ES2022"],
-    "rootDir": "./src",
+    "rootDir": ".",
     "outDir": "./dist",
     "strict": true,
     "esModuleInterop": true,
@@ -13,8 +13,13 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "declaration": true,
-    "types": ["node"]
+    "types": ["node"],
+    "paths": {
+      "@vssh/test-utils": ["./tests/test-utils/index.ts"],
+      "@vssh/test-utils/*": ["./tests/test-utils/*"]
+    },
+    "baseUrl": "."
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist"]
+  "include": ["src/**/*", "tests/**/*"],
+  "exclude": ["node_modules", "dist", "tests/**/*.test.ts", "tests/**/*.spec.ts"]
 }

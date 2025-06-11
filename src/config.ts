@@ -3,7 +3,6 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 import * as readline from 'readline';
-import type { SSHConfig } from './types';
 
 // Dynamic paths based on user's home directory
 export const PROJECT_PATH = path.join(os.homedir(), '.vssh');
@@ -20,10 +19,26 @@ const envSchema = z.object({
 const configSchema = z.object({
   host: z.string(),
   user: z.string(),
-  keyPath: z.string()
+  keyPath: z.string(),
+  plugins: z.object({
+    enabled: z.array(z.string()).optional(),
+    disabled: z.array(z.string()).optional(),
+    config: z.record(z.any()).optional()
+  }).optional()
 });
 
-export function loadConfig(): SSHConfig | null {
+export interface Config {
+  host: string;
+  user: string;
+  keyPath: string;
+  plugins?: {
+    enabled?: string[];
+    disabled?: string[];
+    config?: Record<string, any>;
+  };
+}
+
+export function loadConfig(): Config | null {
   // Ensure data directories exist
   fs.mkdirSync(LOGS_PATH, { recursive: true });
 
@@ -32,7 +47,7 @@ export function loadConfig(): SSHConfig | null {
     try {
       const savedConfig = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf-8'));
       return configSchema.parse(savedConfig);
-    } catch (error) {
+    } catch (error: any) {
       console.error('⚠️  Warning: Failed to parse saved config:', error);
     }
   }
@@ -48,7 +63,10 @@ export function loadConfig(): SSHConfig | null {
     return {
       host: envConfig.data.VSSH_HOST,
       user: envConfig.data.VSSH_USER,
-      keyPath: envConfig.data.VSSH_KEY_PATH
+      keyPath: envConfig.data.VSSH_KEY_PATH,
+      plugins: {
+        enabled: ['docker', 'coolify']  // Default enabled plugins
+      }
     };
   }
 
@@ -56,7 +74,7 @@ export function loadConfig(): SSHConfig | null {
   return null;
 }
 
-export async function setupInteractiveConfig(): Promise<SSHConfig> {
+export async function setupInteractiveConfig(): Promise<Config> {
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout
@@ -107,7 +125,14 @@ export async function setupInteractiveConfig(): Promise<SSHConfig> {
 
   rl.close();
 
-  const config: SSHConfig = { host, user, keyPath };
+  const config: Config = { 
+    host, 
+    user, 
+    keyPath,
+    plugins: {
+      enabled: ['docker', 'coolify']  // Default enabled plugins
+    }
+  };
 
   // Save config
   fs.mkdirSync(PROJECT_PATH, { recursive: true });

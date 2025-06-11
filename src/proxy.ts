@@ -1,14 +1,15 @@
 import { SSHService } from './services/ssh';
-import { CommandGuard } from './services/command-guard';
-import { loadConfig, LOGS_PATH } from './config';
+import { CommandGuardService } from './services/command-guard-service';
+import { Config, LOGS_PATH } from './config';
 import * as fs from 'fs';
 import * as path from 'path';
 
-export async function executeProxy(args: string[]) {
+export async function executeProxy(args: string[], config: Config, commandGuard?: CommandGuardService) {
   const command = args.join(' ');
 
   // Check command safety
-  const guardResult = CommandGuard.checkCommand(command);
+  const guard = commandGuard || new CommandGuardService();
+  const guardResult = guard.checkCommand(command);
   
   // Display warnings, if any
   if (guardResult.reasons.length > 0) {
@@ -20,8 +21,8 @@ export async function executeProxy(args: string[]) {
   }
   
   if (guardResult.isBlocked) {
-    CommandGuard.displayBlockedMessage(command, guardResult);
-    CommandGuard.logBlockedCommand(command, guardResult);
+    guard.displayBlockedMessage(command, guardResult);
+    guard.logBlockedCommand(command, guardResult);
     process.exit(1);
   }
 
@@ -33,11 +34,6 @@ export async function executeProxy(args: string[]) {
   fs.appendFileSync(path.join(LOGS_PATH, 'proxy_commands.log'), logEntry);
 
   // Execute via SSH
-  const config = loadConfig();
-  if (!config) {
-    console.error('❌ No SSH configuration found');
-    process.exit(1);
-  }
   const ssh = new SSHService(config);
 
   const startTime = Date.now();
