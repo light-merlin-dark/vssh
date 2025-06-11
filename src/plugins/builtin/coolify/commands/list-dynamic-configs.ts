@@ -9,9 +9,11 @@ export async function listDynamicConfigsCommand(
   
   try {
     // List all files in the dynamic directory
-    const files = await context.sshService.executeCommand(
-      `find ${dynamicPath} -type f \\( -name "*.yml" -o -name "*.yaml" -o -name "*.toml" -o -name "*.json" \\) 2>/dev/null | sort`
+    const result = await context.proxyService.executeCommand(
+      `find ${dynamicPath} -type f \\( -name "*.yml" -o -name "*.yaml" -o -name "*.toml" -o -name "*.json" \\) 2>/dev/null | sort`,
+      { skipLogging: true }
     );
+    const files = result.output;
     
     if (!files.trim()) {
       console.log('No dynamic configurations found');
@@ -28,7 +30,8 @@ export async function listDynamicConfigsCommand(
       console.log('-'.repeat(80));
       
       try {
-        const content = await context.sshService.executeCommand(`cat ${file}`);
+        const contentResult = await context.proxyService.executeCommand(`cat ${file}`, { skipLogging: true });
+        const content = contentResult.output;
         console.log(content);
       } catch (error: any) {
         console.error(`Failed to read ${file}: ${error.message}`);

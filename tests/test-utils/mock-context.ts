@@ -1,6 +1,8 @@
 import { PluginContext, VsshConfig } from '../../src/plugins/types';
 import { MockSSHService, createMockSSHService } from './mock-ssh-service';
 import { CommandGuardService } from '../../src/services/command-guard-service';
+import { ProxyService } from '../../src/services/proxy-service';
+import { Config } from '../../src/config';
 
 export interface PluginTestContext {
   context: PluginContext;
@@ -28,6 +30,7 @@ export function createMockContext(configOverrides: Partial<VsshConfig> = {}): Pl
     host: 'test.example.com',
     user: 'testuser',
     keyPath: '/home/testuser/.ssh/test_rsa',
+    localMode: false,
     plugins: {
       enabled: ['test-plugin'],
       disabled: [],
@@ -35,6 +38,9 @@ export function createMockContext(configOverrides: Partial<VsshConfig> = {}): Pl
     },
     ...configOverrides
   };
+  
+  // Create ProxyService with mock SSH
+  const proxyService = new ProxyService(config as Config, mockSSH as any, commandGuard);
   
   // Create simple spy functions for logging
   const logs: { [key: string]: any[] } = {
@@ -62,6 +68,8 @@ export function createMockContext(configOverrides: Partial<VsshConfig> = {}): Pl
     commandGuard,
     config,
     logger,
+    proxyService,
+    isLocalExecution: config.localMode || false,
     getPlugin: (name: string) => plugins.get(name)
   };
   

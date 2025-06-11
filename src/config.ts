@@ -20,6 +20,7 @@ const configSchema = z.object({
   host: z.string(),
   user: z.string(),
   keyPath: z.string(),
+  localMode: z.boolean().optional().default(false),
   plugins: z.object({
     enabled: z.array(z.string()).optional(),
     disabled: z.array(z.string()).optional(),
@@ -31,6 +32,7 @@ export interface Config {
   host: string;
   user: string;
   keyPath: string;
+  localMode?: boolean;
   plugins?: {
     enabled?: string[];
     disabled?: string[];

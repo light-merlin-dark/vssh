@@ -1,0 +1,11 @@
+{
+  "name": "@vssh/plugin-proxy",
+  "version": "1.0.0",
+  "description": "Core proxy functionality for VSSH",
+  "main": "index.ts",
+  "author": "VSSH Core",
+  "license": "MIT",
+  "peerDependencies": {
+    "@vssh/core": "*"
+  }
+}

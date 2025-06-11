@@ -13,7 +13,7 @@ export async function getContainerCommand(
     process.exit(1);
   }
   
-  const docker = new DockerService(context.sshService);
+  const docker = new DockerService(context.sshService, context.proxyService);
   
   try {
     let matchType: 'contains' | 'startsWith' | 'endsWith' = 'contains';

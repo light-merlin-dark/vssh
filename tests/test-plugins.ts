@@ -41,7 +41,9 @@ async function runTests() {
   
   const sshService = new SSHService(config);
   const commandGuard = new CommandGuardService();
-  const registry = new PluginRegistry(sshService, commandGuard, config, logger);
+  const { ProxyService } = await import('../src/services/proxy-service');
+  const proxyService = new ProxyService(config, sshService, commandGuard);
+  const registry = new PluginRegistry(sshService, commandGuard, config, logger, proxyService, false);
   
   // Test plugin loading and enabling
   await test('Load Docker plugin', async () => {
@@ -129,6 +131,8 @@ async function runTests() {
       commandGuard,
       config,
       logger: testLogger,
+      proxyService,
+      isLocalExecution: false,
       getPlugin: (name: string) => registry.getPlugin(name)
     };
     
@@ -157,6 +161,8 @@ async function runTests() {
       commandGuard,
       config,
       logger,
+      proxyService,
+      isLocalExecution: false,
       getPlugin: (name: string) => registry.getPlugin(name)
     };
     

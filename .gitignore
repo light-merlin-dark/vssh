@@ -19,6 +19,9 @@ logs/
 .env.local
 .env.production
 
+# Developer files
+Makefile
+
 # OS files
 .DS_Store
 Thumbs.db

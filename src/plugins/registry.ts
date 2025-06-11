@@ -1,24 +1,33 @@
 import { VsshPlugin, PluginContext, PluginCommand, McpToolDefinition, CommandGuardExtension, VsshConfig, Logger } from './types';
 import { SSHService } from '../services/ssh';
 import { CommandGuardService } from '../services/command-guard-service';
+import { ProxyService } from '../services/proxy-service';
 
 export class PluginRegistry {
   private plugins: Map<string, VsshPlugin> = new Map();
   private enabled: Set<string> = new Set();
-  private context: PluginContext;
+  private _context: PluginContext;
   private commandMap: Map<string, { plugin: VsshPlugin; command: PluginCommand }> = new Map();
+  
+  get context(): PluginContext {
+    return this._context;
+  }
   
   constructor(
     sshService: SSHService,
     commandGuard: CommandGuardService,
     config: VsshConfig,
-    logger: Logger
+    logger: Logger,
+    proxyService: ProxyService,
+    isLocalExecution: boolean = false
   ) {
-    this.context = {
+    this._context = {
       sshService,
       commandGuard,
       config,
       logger,
+      proxyService,
+      isLocalExecution,
       getPlugin: (name: string) => this.plugins.get(name),
     };
     
@@ -26,6 +35,9 @@ export class PluginRegistry {
     if (config.plugins?.enabled) {
       config.plugins.enabled.forEach(name => this.enabled.add(name));
     }
+    
+    // Always enable the proxy plugin
+    this.enabled.add('proxy');
   }
   
   async loadPlugin(plugin: VsshPlugin): Promise<void> {
@@ -100,20 +112,25 @@ export class PluginRegistry {
     await this.activatePlugin(plugin);
     
     // Update command guard extensions
-    this.context.commandGuard.clearExtensions();
-    this.context.commandGuard.addExtensions(this.getCommandGuardExtensions());
+    this._context.commandGuard.clearExtensions();
+    this._context.commandGuard.addExtensions(this.getCommandGuardExtensions());
     
     // Update config
-    if (!this.context.config.plugins) {
-      this.context.config.plugins = {};
+    if (!this._context.config.plugins) {
+      this._context.config.plugins = {};
     }
-    this.context.config.plugins.enabled = Array.from(this.enabled);
+    this._context.config.plugins.enabled = Array.from(this.enabled);
   }
   
   async disablePlugin(name: string): Promise<void> {
     const plugin = this.plugins.get(name);
     if (!plugin) {
       throw new Error(`Plugin ${name} is not loaded`);
+    }
+    
+    // Prevent disabling the proxy plugin
+    if (name === 'proxy') {
+      throw new Error('The proxy plugin cannot be disabled');
     }
     
     if (!this.enabled.has(name)) {
@@ -134,12 +151,12 @@ export class PluginRegistry {
     this.enabled.delete(name);
     
     // Update command guard extensions
-    this.context.commandGuard.clearExtensions();
-    this.context.commandGuard.addExtensions(this.getCommandGuardExtensions());
+    this._context.commandGuard.clearExtensions();
+    this._context.commandGuard.addExtensions(this.getCommandGuardExtensions());
     
     // Update config
-    if (this.context.config.plugins) {
-      this.context.config.plugins.enabled = Array.from(this.enabled);
+    if (this._context.config.plugins) {
+      this._context.config.plugins.enabled = Array.from(this.enabled);
     }
   }
   
@@ -240,7 +257,7 @@ export class PluginRegistry {
       await plugin.onLoad(this.context);
     }
     
-    this.context.logger.info(`Plugin ${plugin.name} activated`);
+    this._context.logger.info(`Plugin ${plugin.name} activated`);
   }
   
   private async deactivatePlugin(plugin: VsshPlugin): Promise<void> {
@@ -254,7 +271,7 @@ export class PluginRegistry {
       this.unregisterCommand(command);
     }
     
-    this.context.logger.info(`Plugin ${plugin.name} deactivated`);
+    this._context.logger.info(`Plugin ${plugin.name} deactivated`);
   }
   
   private registerCommand(plugin: VsshPlugin, command: PluginCommand): void {
@@ -265,7 +282,7 @@ export class PluginRegistry {
     if (command.aliases) {
       for (const alias of command.aliases) {
         if (this.commandMap.has(alias)) {
-          this.context.logger.warn(
+          this._context.logger.warn(
             `Alias ${alias} for command ${command.name} conflicts with existing command`
           );
         } else {

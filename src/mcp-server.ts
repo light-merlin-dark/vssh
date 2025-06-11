@@ -2,13 +2,16 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
+import * as fs from "fs";
 
 import { SSHService } from "./services/ssh";
 import { CommandGuardService } from "./services/command-guard-service";
-import { loadConfig, setupInteractiveConfig, Config } from "./config";
+import { ProxyService } from "./services/proxy-service";
+import { loadConfig, setupInteractiveConfig, Config, CONFIG_PATH } from "./config";
 import { PluginRegistry, PluginLoader } from "./plugins";
 import dockerPlugin from "./plugins/builtin/docker";
 import coolifyPlugin from "./plugins/builtin/coolify";
+import proxyPlugin from "./plugins/builtin/proxy";
 
 // 1. Boot the CLI in "server mode"
 const server = new McpServer({
@@ -32,9 +35,11 @@ async function initializePlugins(config: Config) {
   
   const sshService = new SSHService(config);
   commandGuard = new CommandGuardService();
-  registry = new PluginRegistry(sshService, commandGuard, config, logger);
+  const proxyService = new ProxyService(config, sshService, commandGuard);
+  registry = new PluginRegistry(sshService, commandGuard, config, logger, proxyService, false);
   
   // Load built-in plugins
+  await registry.loadPlugin(proxyPlugin);
   await registry.loadPlugin(dockerPlugin);
   await registry.loadPlugin(coolifyPlugin);
   
@@ -79,6 +84,8 @@ async function initializePlugins(config: Config) {
                 commandGuard: commandGuard!,
                 config,
                 logger: captureLogger,
+                proxyService: registry!.context.proxyService,
+                isLocalExecution: registry!.context.isLocalExecution,
                 getPlugin: (name: string) => registry!.getPlugin(name)
               };
               
@@ -222,6 +229,84 @@ server.tool(
         annotations: {
           durationMs: Date.now() - start
         }
+      };
+    }
+  }
+);
+
+/** Tool: get_local_mode – returns the current local mode status from the config */
+server.tool(
+  "get_local_mode",
+  {},
+  async () => {
+    try {
+      const cfg = loadConfig();
+      if (!cfg) {
+        return {
+          isError: true,
+          content: [{
+            type: "text",
+            text: "No SSH configuration found. Please run 'vssh --setup' first."
+          }]
+        };
+      }
+      
+      return {
+        content: [{
+          type: "text",
+          text: `Local mode is currently ${cfg.localMode ? 'enabled' : 'disabled'}`
+        }]
+      };
+    } catch (error: any) {
+      return {
+        isError: true,
+        content: [{
+          type: "text",
+          text: `Error reading configuration: ${error.message}`
+        }]
+      };
+    }
+  }
+);
+
+/** Tool: set_local_mode – sets the local mode in the config and saves it */
+server.tool(
+  "set_local_mode",
+  {
+    enabled: z.boolean().describe("Whether to enable or disable local mode")
+  },
+  async ({ enabled }) => {
+    try {
+      const cfg = loadConfig();
+      if (!cfg) {
+        return {
+          isError: true,
+          content: [{
+            type: "text",
+            text: "No SSH configuration found. Please run 'vssh --setup' first."
+          }]
+        };
+      }
+      
+      // Update the config
+      cfg.localMode = enabled;
+      
+      // Save the updated config to disk
+      fs.writeFileSync(CONFIG_PATH, JSON.stringify(cfg, null, 2));
+      
+      return {
+        content: [{
+          type: "text",
+          text: `Local mode has been ${enabled ? 'enabled' : 'disabled'} successfully`
+        }]
+      };
+    } catch (error: any) {
+      return {
+        isError: true,
+        content: [{
+          type: "text",
+          text: `Error updating configuration: ${error.message}`
+        }]
       };
     }
   }

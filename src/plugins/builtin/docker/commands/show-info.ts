@@ -5,7 +5,7 @@ export async function showInfoCommand(
   context: PluginContext,
   args: ParsedArgs
 ): Promise<void> {
-  const docker = new DockerService(context.sshService);
+  const docker = new DockerService(context.sshService, context.proxyService);
   
   console.log('🔍 Gathering system information...');
   

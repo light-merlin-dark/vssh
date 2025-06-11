@@ -27,6 +27,7 @@ describe('Config', () => {
       host: 'test.com',
       user: 'testuser',
       keyPath: '/test/key',
+      localMode: false,
       plugins: { enabled: ['docker'] }
     };
     

@@ -1,10 +1,12 @@
 import { SSHService } from '../services/ssh';
 import { CommandGuardService } from '../services/command-guard-service';
+import { ProxyService } from '../services/proxy-service';
 
 export interface VsshConfig {
   host: string;
   user: string;
   keyPath: string;
+  localMode?: boolean;
   plugins?: {
     enabled?: string[];
     disabled?: string[];
@@ -17,6 +19,8 @@ export interface PluginContext {
   commandGuard: CommandGuardService;
   config: VsshConfig;
   logger: Logger;
+  proxyService: ProxyService;
+  isLocalExecution: boolean;
   getPlugin(name: string): VsshPlugin | undefined;
 }
 

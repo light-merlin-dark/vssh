@@ -6,7 +6,7 @@ export async function listPortsCommand(
   args: ParsedArgs
 ): Promise<void> {
   const containerFilter = args._[1];
-  const docker = new DockerService(context.sshService);
+  const docker = new DockerService(context.sshService, context.proxyService);
   
   try {
     let containers = await docker.listContainers();

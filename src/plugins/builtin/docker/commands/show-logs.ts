@@ -16,7 +16,7 @@ export async function showLogsCommand(
   const tail = args.tail || args.t || 50;
   const verbose = args.verbose || args.v || false;
   
-  const docker = new DockerService(context.sshService);
+  const docker = new DockerService(context.sshService, context.proxyService);
   
   if (verbose) {
     console.log(`🔍 Fetching logs for ${containers.length} container(s)...`);

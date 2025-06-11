@@ -7,10 +7,10 @@ export async function getProxyConfigCommand(
   const proxyPath = '/data/coolify/proxy/docker-compose.yml';
   
   try {
-    const config = await context.sshService.executeCommand(`cat ${proxyPath}`);
+    const result = await context.proxyService.executeCommand(`cat ${proxyPath}`, { skipLogging: true });
     console.log('🔧 Coolify Proxy Configuration');
     console.log('=' .repeat(80));
-    console.log(config);
+    console.log(result.output);
   } catch (error: any) {
     context.logger.error(`Failed to read proxy configuration: ${error.message}`);
     console.error('\nMake sure Coolify is installed and the proxy configuration exists.');

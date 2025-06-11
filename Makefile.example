@@ -1,4 +1,4 @@
-.PHONY: install build dev clean publish test lint help login check-auth whoami link unlink version patch minor major pre-publish
+.PHONY: install build dev clean publish test lint help login check-auth whoami version patch minor major pre-publish push release
 
 # Load environment variables from .env if it exists
 -include .env
@@ -28,15 +28,9 @@ help:
 	@echo "  make minor      - Bump minor version (1.0.0 -> 1.1.0)"
 	@echo "  make major      - Bump major version (1.0.0 -> 2.0.0)"
 	@echo ""
-	@echo "Local Testing:"
-	@echo "  make link       - Link package globally for local testing"
-	@echo "  make unlink     - Unlink global package"
-	@echo ""
-	@echo "Git Operations:"
-	@echo "  make push       - Auto-commit and push to GitHub (uses 'm push')"
-	@echo ""
-	@echo "Publishing:"
-	@echo "  make pre-publish - Run all checks before publishing"
+	@echo "Release Management:"
+	@echo "  make push       - Smart release: auto-version, commit, push, and publish"
+	@echo "  make release    - Alias for push"
 
 install:
 	npm install
@@ -61,9 +55,6 @@ test:
 lint:
 	npm run lint
 
-# Quick rebuild
-rebuild: clean install build
-
 # NPM Registry Commands
 login:
 	@if [ -z "$(NPM_ACCESS_TOKEN)" ]; then \
@@ -74,7 +65,7 @@ login:
 	@echo "Logged in to npm registry with token from .env"
 
 check-auth:
-	@npm whoami --scope=@light-merlin-dark || echo "Not authenticated. Run 'make login' first."
+	@npm whoami || echo "Not authenticated. Run 'make login' first."
 
 whoami:
 	@npm whoami
@@ -95,17 +86,18 @@ major: build
 	npm version major
 	@echo "Version bumped to $$(make version)"
 
-# Local Testing
-link: build
-	npm link
-	@echo "Package linked globally. You can now use 'cch' command."
-
-unlink:
-	npm unlink -g @light-merlin-dark/claude-code-helper
-	@echo "Package unlinked globally."
-
-push:
+# Smart push: handles everything
+push: lint build test
+	@echo "🚀 Starting smart release process..."
+	@node scripts/smart-version.js
+	@echo "📝 Committing and pushing to GitHub..."
 	@m push
+	@echo "📦 Publishing to npm..."
+	@npm publish --access public
+	@echo "✅ Release complete!"
+
+# Alias for push
+release: push
 
 # Pre-publish check
 pre-publish: lint build test

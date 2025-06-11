@@ -1,4 +1,5 @@
 import { SSHService } from '../../../../services/ssh';
+import { ProxyService } from '../../../../services/proxy-service';
 
 export interface Container {
   id: string;
@@ -33,12 +34,22 @@ interface CacheEntry<T> {
 
 export class DockerService {
   private ssh: SSHService;
+  private proxy?: ProxyService;
   private containerCache?: CacheEntry<Container[]>;
   private networkCache?: CacheEntry<Network[]>;
   private readonly cacheTTL = 10000; // 10 seconds
   
-  constructor(ssh: SSHService) {
+  constructor(ssh: SSHService, proxy?: ProxyService) {
     this.ssh = ssh;
+    this.proxy = proxy;
+  }
+  
+  private async execute(command: string): Promise<string> {
+    if (this.proxy) {
+      const result = await this.proxy.executeCommand(command, { skipLogging: true });
+      return result.output;
+    }
+    return await this.ssh.executeCommand(command);
   }
   
   async listContainers(useCache = true): Promise<Container[]> {
@@ -49,7 +60,7 @@ export class DockerService {
       }
     }
     
-    const output = await this.ssh.executeCommand(
+    const output = await this.execute(
       'docker ps -a --format "{{.ID}}|{{.Names}}|{{.Status}}|{{.Image}}|{{.Ports}}|{{.CreatedAt}}"'
     );
     
@@ -79,7 +90,7 @@ export class DockerService {
   
   async containerExists(containerIdOrName: string): Promise<boolean> {
     try {
-      await this.ssh.executeCommand(`docker inspect ${containerIdOrName}`);
+      await this.execute(`docker inspect ${containerIdOrName}`);
       return true;
     } catch {
       return false;
@@ -108,7 +119,7 @@ export class DockerService {
   
   async getContainerLogs(container: string, tail?: number): Promise<string> {
     const tailFlag = tail ? `--tail ${tail}` : '';
-    return await this.ssh.executeCommand(`docker logs ${tailFlag} ${container}`);
+    return await this.execute(`docker logs ${tailFlag} ${container}`);
   }
   
   async listNetworks(useCache = true): Promise<Network[]> {
@@ -119,7 +130,7 @@ export class DockerService {
       }
     }
     
-    const output = await this.ssh.executeCommand(
+    const output = await this.execute(
       'docker network ls --format "{{.ID}}|{{.Name}}|{{.Driver}}|{{.Scope}}"'
     );
     
@@ -141,7 +152,7 @@ export class DockerService {
   }
   
   async getSystemInfo(): Promise<any> {
-    const output = await this.ssh.executeCommand('docker system info --format json');
+    const output = await this.execute('docker system info --format json');
     return JSON.parse(output);
   }
   
@@ -151,11 +162,11 @@ export class DockerService {
     const stopped = containers.length - running;
     
     // Get image count
-    const imageOutput = await this.ssh.executeCommand('docker images -q | wc -l');
+    const imageOutput = await this.execute('docker images -q | wc -l');
     const images = parseInt(imageOutput.trim());
     
     // Get volume count
-    const volumeOutput = await this.ssh.executeCommand('docker volume ls -q | wc -l');
+    const volumeOutput = await this.execute('docker volume ls -q | wc -l');
     const volumes = parseInt(volumeOutput.trim());
     
     return {
@@ -170,14 +181,14 @@ export class DockerService {
   }
   
   async getContainerPorts(containerIdOrName: string): Promise<string> {
-    const output = await this.ssh.executeCommand(
+    const output = await this.execute(
       `docker inspect ${containerIdOrName} --format '{{range $p, $conf := .NetworkSettings.Ports}}{{$p}} -> {{(index $conf 0).HostPort}}{{end}}'`
     );
     return output.trim();
   }
   
   async getTopContainers(limit = 5): Promise<string> {
-    return await this.ssh.executeCommand(
+    return await this.execute(
       `docker stats --no-stream --format "table {{.Container}}\t{{.Name}}\t{{.CPU}}\t{{.MemUsage}}" | head -n ${limit + 1}`
     );
   }

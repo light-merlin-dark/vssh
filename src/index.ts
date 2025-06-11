@@ -4,6 +4,7 @@ import { loadConfig, setupInteractiveConfig, Config } from './config';
 import { PluginRegistry, PluginLoader } from './plugins';
 import { SSHService } from './services/ssh';
 import { CommandGuardService } from './services/command-guard-service';
+import { ProxyService } from './services/proxy-service';
 import { handlePluginsCommand } from './cli/plugins';
 import * as fs from 'fs/promises';
 import * as path from 'path';
@@ -21,6 +22,7 @@ SYNTAX:
   vssh "full command string"  # AI-friendly: entire command in quotes
   vssh --setup                # Interactive setup wizard
   vssh --help                 # Show this help message
+  vssh --local <command>      # Execute command locally instead of on remote server
 
 FEATURES FOR AI ASSISTANTS:
   • Clear command syntax that works with AI tool permissions
@@ -77,6 +79,14 @@ IMPORTANT FOR AI TOOLS:
 async function main() {
   const args = process.argv.slice(2);
 
+  // Check for --local flag
+  const localIndex = args.findIndex(arg => arg === '--local' || arg === '-l');
+  const hasLocalFlag = localIndex !== -1;
+  if (hasLocalFlag) {
+    // Remove the flag from args
+    args.splice(localIndex, 1);
+  }
+
   // Handle help
   if (args.length === 0 || args[0] === '--help' || args[0] === '-h') {
     showHelp();
@@ -97,6 +107,9 @@ async function main() {
     process.exit(1);
   }
 
+  // Determine local execution mode
+  const isLocalExecution = hasLocalFlag || config.localMode === true;
+  
   // Initialize plugin system
   const logger = {
     info: (msg: string) => console.log(`ℹ️  ${msg}`),
@@ -107,7 +120,9 @@ async function main() {
   
   const sshService = new SSHService(config);
   const commandGuard = new CommandGuardService();
-  const registry = new PluginRegistry(sshService, commandGuard, config, logger);
+  const proxyService = new ProxyService(config, sshService, commandGuard);
+  proxyService.setLocalMode(isLocalExecution);
+  const registry = new PluginRegistry(sshService, commandGuard, config, logger, proxyService, isLocalExecution);
   
   // Apply plugin command guard extensions
   commandGuard.addExtensions(registry.getCommandGuardExtensions());
@@ -155,6 +170,8 @@ async function main() {
         commandGuard,
         config,
         logger,
+        proxyService,
+        isLocalExecution,
         getPlugin: (name: string) => registry.getPlugin(name)
       }, parsedArgs);
     } catch (error: any) {

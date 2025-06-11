@@ -5,7 +5,7 @@ export async function listNetworksCommand(
   context: PluginContext,
   args: ParsedArgs
 ): Promise<void> {
-  const docker = new DockerService(context.sshService);
+  const docker = new DockerService(context.sshService, context.proxyService);
   
   try {
     const networks = await docker.listNetworks();

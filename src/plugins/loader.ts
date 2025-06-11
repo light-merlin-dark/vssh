@@ -15,7 +15,14 @@ export class PluginLoader {
     try {
       const entries = await fs.readdir(this.builtinDir, { withFileTypes: true });
       
-      for (const entry of entries) {
+      // Sort entries to ensure 'proxy' loads first
+      const sortedEntries = entries.sort((a, b) => {
+        if (a.name === 'proxy') return -1;
+        if (b.name === 'proxy') return 1;
+        return a.name.localeCompare(b.name);
+      });
+      
+      for (const entry of sortedEntries) {
         if (entry.isDirectory()) {
           const pluginPath = path.join(this.builtinDir, entry.name);
           const plugin = await this.loadPlugin(pluginPath);
