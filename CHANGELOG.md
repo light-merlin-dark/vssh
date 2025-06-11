@@ -5,6 +5,46 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.1] - 2025-01-11
+
+### Added
+- **Proxy as Core Plugin**: Converted proxy functionality into a native plugin
+  - `vssh proxy <command>` - Execute commands via proxy (aliases: run, exec)
+  - `vssh local-mode [on|off|status]` - Manage local execution mode
+  - Proxy plugin loads first and cannot be disabled
+  - All plugin commands now execute through proxy by default
+
+- **Local Execution Mode**: Flexible command execution options
+  - `--local` flag for one-off local command execution
+  - Persistent local mode setting saved in configuration
+  - When local mode is enabled, all commands execute locally by default
+  - MCP tools `get_local_mode` and `set_local_mode` for AI agents
+
+- **Unified Command Pipeline**: Consistent execution for all commands
+  - All Docker and Coolify commands use ProxyService
+  - Automatic logging and timing for all operations
+  - Skip logging option for internal plugin operations
+  - Commands execute on remote server by default
+
+### Changed
+- **Architecture Refactoring**: Major internal improvements
+  - Created ProxyService to centralize command execution
+  - Updated PluginContext to include ProxyService and local mode state
+  - Modified all plugin commands to use proxy by default
+  - Enhanced plugin registry to support new architecture
+
+- **Developer Experience**
+  - Makefile converted to example template (Makefile.example)
+  - Added smart release process: `make push` handles everything
+  - Intelligent version management compares npm vs local
+  - Removed unnecessary link/unlink commands
+
+### Technical Details
+- ProxyService supports both local and remote execution
+- Command guard integration preserved through proxy
+- Full backward compatibility maintained
+- Tests updated for new architecture
+
 ## [1.4.0] - 2025-01-11
 
 ### Added

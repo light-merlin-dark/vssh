@@ -43,6 +43,8 @@ claude mcp add-json vssh '{
 ### Available MCP Tools
 Once configured, AI assistants gain access to:
 - `run_command` - Execute any SSH command with safety checks
+- `get_local_mode` - Check if commands execute locally or remotely
+- `set_local_mode` - Toggle between local and remote execution
 - `list_docker_containers` - List all containers (Docker plugin)
 - `show_docker_logs` - View container logs (Docker plugin)
 - `show_docker_info` - System information dashboard (Docker plugin)
@@ -50,6 +52,13 @@ Once configured, AI assistants gain access to:
 - And many more plugin-based tools!
 
 ## ✨ Key Features
+
+### 🎯 Unified Command Execution
+All commands now execute through a centralized proxy system:
+- Consistent logging and timing for all operations
+- Plugin commands automatically use proxy pipeline
+- Toggle between local and remote execution modes
+- Perfect for development, testing, and production use
 
 ### 🤖 AI-Optimized Interface
 ```bash
@@ -215,6 +224,11 @@ vssh lcd                          # List dynamic configs
 # Direct Commands
 vssh cat /etc/nginx/nginx.conf
 vssh 'find /var/log -name "*.log" -size +100M'
+
+# Local Execution Mode
+vssh local-mode status            # Check current mode
+vssh local-mode on                # Enable local execution
+vssh --local docker ps            # One-off local command
 ```
 
 ## ⚙️ Configuration
@@ -226,6 +240,7 @@ Configuration is stored in `~/.vssh/config.json`:
   "host": "your-server.com",
   "user": "root",
   "keyPath": "/Users/you/.ssh/id_rsa",
+  "localMode": false,
   "plugins": {
     "enabled": ["docker", "coolify"],
     "config": {
