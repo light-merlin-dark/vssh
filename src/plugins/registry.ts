@@ -1,13 +1,16 @@
-import { VsshPlugin, PluginContext, PluginCommand, McpToolDefinition, CommandGuardExtension, VsshConfig, Logger } from './types';
+import { VsshPlugin, PluginContext, PluginCommand, McpToolDefinition, CommandGuardExtension, VsshConfig, Logger, ParsedArgs } from './types';
 import { SSHService } from '../services/ssh';
 import { CommandGuardService } from '../services/command-guard-service';
 import { ProxyService } from '../services/proxy-service';
+import { DependencyChecker } from '../services/dependency-checker';
+import { saveConfig } from '../config';
 
 export class PluginRegistry {
   private plugins: Map<string, VsshPlugin> = new Map();
   private enabled: Set<string> = new Set();
   private _context: PluginContext;
   private commandMap: Map<string, { plugin: VsshPlugin; command: PluginCommand }> = new Map();
+  private dependencyChecker: DependencyChecker;
   
   get context(): PluginContext {
     return this._context;
@@ -31,6 +34,12 @@ export class PluginRegistry {
       getPlugin: (name: string) => this.plugins.get(name),
     };
     
+    this.dependencyChecker = new DependencyChecker(
+      sshService,
+      proxyService,
+      isLocalExecution
+    );
+    
     // Load enabled plugins from config
     if (config.plugins?.enabled) {
       config.plugins.enabled.forEach(name => this.enabled.add(name));
@@ -52,8 +61,9 @@ export class PluginRegistry {
       throw new Error(`Circular dependency detected for plugin ${name}`);
     }
     
-    // Validate dependencies exist
-    if (plugin.dependencies) {
+    // Validate dependencies exist (only in local mode)
+    // In proxy mode, dependencies will be checked on the server at runtime
+    if (this._context.isLocalExecution && plugin.dependencies) {
       for (const dep of plugin.dependencies) {
         if (!this.plugins.has(dep)) {
           throw new Error(`Plugin ${name} depends on ${dep}, which is not loaded`);
@@ -101,10 +111,18 @@ export class PluginRegistry {
       return; // Already enabled
     }
     
-    // Enable dependencies first
+    // Enable dependencies first (only if they exist locally)
+    // In proxy mode, dependencies will be checked on the server at runtime
     if (plugin.dependencies) {
       for (const dep of plugin.dependencies) {
-        await this.enablePlugin(dep);
+        // Only try to enable if the dependency is loaded
+        if (this.plugins.has(dep)) {
+          await this.enablePlugin(dep);
+        } else if (this._context.isLocalExecution) {
+          // In local mode, missing dependencies are an error
+          throw new Error(`Cannot enable plugin ${name}: dependency ${dep} is not loaded`);
+        }
+        // In proxy mode, we allow enabling even if dependencies aren't loaded locally
       }
     }
     
@@ -120,6 +138,9 @@ export class PluginRegistry {
       this._context.config.plugins = {};
     }
     this._context.config.plugins.enabled = Array.from(this.enabled);
+    
+    // Save config to disk
+    saveConfig(this._context.config);
   }
   
   async disablePlugin(name: string): Promise<void> {
@@ -158,6 +179,9 @@ export class PluginRegistry {
     if (this._context.config.plugins) {
       this._context.config.plugins.enabled = Array.from(this.enabled);
     }
+    
+    // Save config to disk
+    saveConfig(this._context.config);
   }
   
   getEnabledPlugins(): VsshPlugin[] {
@@ -246,6 +270,45 @@ export class PluginRegistry {
     return extensions;
   }
   
+  async executeCommand(commandName: string, args: ParsedArgs): Promise<void> {
+    const command = this.getCommand(commandName);
+    if (!command) {
+      throw new Error(`Command ${commandName} not found`);
+    }
+    
+    const plugin = this.getCommandPlugin(commandName);
+    if (!plugin) {
+      throw new Error(`Plugin for command ${commandName} not found`);
+    }
+    
+    if (!this.isEnabled(plugin.name)) {
+      throw new Error(`Plugin '${plugin.name}' is not enabled`);
+    }
+    
+    // Check runtime dependencies
+    if (plugin.runtimeDependencies && plugin.runtimeDependencies.length > 0) {
+      const results = await this.dependencyChecker.checkPluginDependencies(plugin);
+      
+      // Check for missing required dependencies
+      try {
+        this.dependencyChecker.assertAllDependenciesAvailable(results);
+      } catch (error: any) {
+        // If there are missing dependencies, show them and exit
+        console.error(`\n❌ ${error.message}`);
+        process.exit(1);
+      }
+      
+      // Show warnings for optional dependencies
+      const missingOptional = results.filter(r => !r.isAvailable && r.dependency.optional);
+      for (const result of missingOptional) {
+        this._context.logger.warn(`Optional dependency missing: ${result.error}`);
+      }
+    }
+    
+    // Execute the command
+    await command.handler(this._context, args);
+  }
+  
   private async activatePlugin(plugin: VsshPlugin): Promise<void> {
     // Register commands
     for (const command of plugin.commands) {
@@ -257,7 +320,7 @@ export class PluginRegistry {
       await plugin.onLoad(this.context);
     }
     
-    this._context.logger.info(`Plugin ${plugin.name} activated`);
+    // Plugin activated
   }
   
   private async deactivatePlugin(plugin: VsshPlugin): Promise<void> {
@@ -271,7 +334,7 @@ export class PluginRegistry {
       this.unregisterCommand(command);
     }
     
-    this._context.logger.info(`Plugin ${plugin.name} deactivated`);
+    // Plugin deactivated
   }
   
   private registerCommand(plugin: VsshPlugin, command: PluginCommand): void {

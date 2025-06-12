@@ -8,6 +8,7 @@ export async function listNetworksCommand(
   const docker = new DockerService(context.sshService, context.proxyService);
   
   try {
+    
     const networks = await docker.listNetworks();
     
     if (networks.length === 0) {

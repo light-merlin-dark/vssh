@@ -12,6 +12,15 @@ const dockerPlugin: VsshPlugin = {
   description: 'Docker container management commands',
   author: 'vssh',
   
+  runtimeDependencies: [
+    {
+      command: 'docker',
+      displayName: 'Docker',
+      checkCommand: 'which docker',
+      installHint: 'Please install Docker from https://docker.com'
+    }
+  ],
+  
   commands: [
     {
       name: 'list-docker-containers',

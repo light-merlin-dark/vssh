@@ -10,6 +10,7 @@ export async function showInfoCommand(
   console.log('🔍 Gathering system information...');
   
   try {
+    
     // Run all operations concurrently
     const [
       systemInfo,

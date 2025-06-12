@@ -208,6 +208,80 @@ vssh plugins info docker
 - **Safe**: Plugins can add custom safety guards
 - **MCP-Ready**: All plugin commands are exposed as MCP tools
 - **Extensible**: Easy to create custom plugins
+- **Smart Dependencies**: Automatic runtime dependency checking
+
+### Plugin Development
+
+Creating a vssh plugin is straightforward:
+
+```typescript
+import { VsshPlugin } from '@vssh/types';
+
+const myPlugin: VsshPlugin = {
+  name: 'my-plugin',
+  version: '1.0.0',
+  description: 'My custom plugin',
+  
+  // Declare runtime dependencies
+  runtimeDependencies: [
+    {
+      command: 'kubectl',
+      displayName: 'Kubernetes CLI',
+      checkCommand: 'kubectl version --client',
+      installHint: 'Install kubectl from https://kubernetes.io/docs/tasks/tools/'
+    }
+  ],
+  
+  // Plugin commands
+  commands: [
+    {
+      name: 'list-pods',
+      aliases: ['lp'],
+      description: 'List Kubernetes pods',
+      handler: async (context) => {
+        // Your command logic here
+      }
+    }
+  ],
+  
+  // Optional MCP tool definitions
+  mcpTools: [
+    {
+      name: 'list_k8s_pods',
+      description: 'List all Kubernetes pods',
+      inputSchema: { type: 'object', properties: {} }
+    }
+  ],
+  
+  // Optional safety guards
+  commandGuards: [
+    {
+      category: 'kubernetes',
+      patterns: [/kubectl\s+delete\s+namespace/],
+      message: 'Deleting namespaces is dangerous',
+      suggestion: 'Use kubectl delete pod instead'
+    }
+  ]
+};
+
+export default myPlugin;
+```
+
+### Runtime Dependencies
+
+vssh automatically checks runtime dependencies before executing plugin commands:
+
+- **Automatic Detection**: Checks if required tools are installed where needed
+- **Mode Aware**: Checks locally in local mode, on server in remote mode
+- **Clear Error Messages**: Users get helpful installation instructions
+- **Optional Dependencies**: Some dependencies can be marked as optional
+- **Cached Results**: Dependency checks are cached for performance
+
+Example dependency error:
+```
+❌ Missing required dependencies:
+• Docker is not installed on the server. Please install Docker from https://docker.com
+```
 
 ## 🎯 Perfect for AI Workflows
 

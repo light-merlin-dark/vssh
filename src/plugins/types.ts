@@ -68,6 +68,14 @@ export interface CommandGuardExtension {
   suggestion?: string;
 }
 
+export interface RuntimeDependency {
+  command: string;
+  displayName: string;
+  checkCommand?: string;
+  installHint?: string;
+  optional?: boolean;
+}
+
 export interface VsshPlugin {
   name: string;
   version: string;
@@ -75,6 +83,7 @@ export interface VsshPlugin {
   author?: string;
   
   dependencies?: string[];
+  runtimeDependencies?: RuntimeDependency[];
   
   onLoad?(context: PluginContext): Promise<void>;
   onUnload?(): Promise<void>;

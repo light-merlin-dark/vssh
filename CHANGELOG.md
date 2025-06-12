@@ -5,6 +5,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **Runtime Dependency System**: Smart dependency checking for plugin commands
+  - Automatic detection of required tools (Docker, kubectl, etc.)
+  - Mode-aware checking (local vs remote server)
+  - Clear error messages with installation instructions
+  - Optional dependencies support
+  - Dependency check result caching for performance
+  - No manual configuration required - checks happen automatically
+
+- **Plugin Development Enhancements**
+  - New `runtimeDependencies` field for declaring external tool requirements
+  - Centralized dependency checking in plugin registry
+  - Clean separation between plugin dependencies and runtime dependencies
+  - Comprehensive test coverage for dependency checking
+
+### Changed
+- **Plugin System Architecture**
+  - Dependency checks now happen at command execution time, not plugin load time
+  - Plugin loading is faster - no dependency checks during startup
+  - Config saving now integrated into plugin enable/disable operations
+  - Plugin registry now uses dedicated DependencyChecker service
+
+### Fixed
+- Coolify plugin now loads correctly even when Docker plugin isn't available locally
+- Plugin enable/disable operations now persist to config file
+- Fixed plugin command recognition in main CLI flow
+
 ## [1.5.0] - 2025-06-12
 
 ### Added

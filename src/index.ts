@@ -150,14 +150,6 @@ async function main() {
   const command = registry.getCommand(commandName);
   
   if (command) {
-    // Execute plugin command
-    const plugin = registry.getCommandPlugin(commandName);
-    if (!registry.isEnabled(plugin!.name)) {
-      console.error(`❌ Plugin '${plugin!.name}' is not enabled`);
-      console.error(`Run: vssh plugins enable ${plugin!.name}`);
-      process.exit(1);
-    }
-    
     try {
       // Parse arguments for plugin command
       const parsedArgs = {
@@ -165,17 +157,10 @@ async function main() {
         ...parseFlags(args.slice(1))
       };
       
-      await command.handler({
-        sshService,
-        commandGuard,
-        config,
-        logger,
-        proxyService,
-        isLocalExecution,
-        getPlugin: (name: string) => registry.getPlugin(name)
-      }, parsedArgs);
+      // Use the registry's executeCommand method which handles dependency checking
+      await registry.executeCommand(commandName, parsedArgs);
     } catch (error: any) {
-      console.error(`❌ Command failed: ${error.message}`);
+      console.error(`❌ ${error.message}`);
       process.exit(1);
     }
   } else {

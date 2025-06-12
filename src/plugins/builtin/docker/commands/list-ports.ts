@@ -9,6 +9,7 @@ export async function listPortsCommand(
   const docker = new DockerService(context.sshService, context.proxyService);
   
   try {
+    
     let containers = await docker.listContainers();
     
     // Filter by container name if provided

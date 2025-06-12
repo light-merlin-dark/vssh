@@ -16,6 +16,7 @@ export async function getContainerCommand(
   const docker = new DockerService(context.sshService, context.proxyService);
   
   try {
+    
     let matchType: 'contains' | 'startsWith' | 'endsWith' = 'contains';
     if (args.startsWith) matchType = 'startsWith';
     else if (args.endsWith) matchType = 'endsWith';

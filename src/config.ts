@@ -43,6 +43,11 @@ export interface Config {
   };
 }
 
+export function saveConfig(config: Config): void {
+  fs.mkdirSync(PROJECT_PATH, { recursive: true });
+  fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2));
+}
+
 export function loadConfig(): Config | null {
   // Ensure data directories exist
   fs.mkdirSync(LOGS_PATH, { recursive: true });

@@ -130,7 +130,7 @@ const proxyPlugin: VsshPlugin = {
   ],
 
   onLoad: async (context: PluginContext) => {
-    context.logger.debug('Proxy plugin loaded');
+    // Proxy plugin loaded
   }
 };
 

@@ -3,17 +3,25 @@ import { PluginRegistry } from '../../../src/plugins/registry';
 import { VsshPlugin } from '../../../src/plugins/types';
 import { createMockSSHService } from '../../test-utils/mock-ssh-service';
 import { CommandGuardService } from '../../../src/services/command-guard-service';
+import { ProxyService } from '../../../src/services/proxy-service';
+
+// Mock the saveConfig function
+vi.mock('../../../src/config', () => ({
+  saveConfig: vi.fn()
+}));
 
 describe('PluginRegistry', () => {
   let registry: PluginRegistry;
   let mockSSH: any;
   let commandGuard: CommandGuardService;
+  let proxyService: ProxyService;
   let config: any;
   let logger: any;
   
   beforeEach(() => {
     mockSSH = createMockSSHService();
     commandGuard = new CommandGuardService();
+    proxyService = new ProxyService({} as any, mockSSH, commandGuard);
     config = {
       host: 'test',
       user: 'test',
@@ -27,7 +35,7 @@ describe('PluginRegistry', () => {
       debug: vi.fn()
     };
     
-    registry = new PluginRegistry(mockSSH, commandGuard, config, logger);
+    registry = new PluginRegistry(mockSSH, commandGuard, config, logger, proxyService);
   });
   
   describe('Plugin Loading', () => {
@@ -74,6 +82,82 @@ describe('PluginRegistry', () => {
       
       await registry.disablePlugin('test');
       expect(registry.isEnabled('test')).toBe(false);
+    });
+  });
+  
+  describe('Runtime Dependencies', () => {
+    it('should check runtime dependencies before executing commands', async () => {
+      const mockHandler = vi.fn();
+      const plugin: VsshPlugin = {
+        name: 'test-deps',
+        version: '1.0.0',
+        description: 'Test plugin with dependencies',
+        runtimeDependencies: [
+          {
+            command: 'docker',
+            displayName: 'Docker',
+            checkCommand: 'which docker',
+            installHint: 'Install Docker from docker.com'
+          }
+        ],
+        commands: [{
+          name: 'test-command',
+          description: 'Test command',
+          usage: 'test-command',
+          handler: mockHandler
+        }]
+      };
+      
+      // Mock SSH to return empty (command not found)
+      mockSSH.setResponse('which docker', '');
+      
+      await registry.loadPlugin(plugin);
+      await registry.enablePlugin('test-deps');
+      
+      // Mock process.exit to prevent test from exiting
+      const mockExit = vi.spyOn(process, 'exit').mockImplementation(() => {
+        throw new Error('Process exit');
+      });
+      
+      // Executing command should fail due to missing dependency
+      await expect(registry.executeCommand('test-command', { _: [] }))
+        .rejects.toThrow('Process exit');
+      
+      expect(mockHandler).not.toHaveBeenCalled();
+      mockExit.mockRestore();
+    });
+    
+    it('should execute command when dependencies are satisfied', async () => {
+      const mockHandler = vi.fn();
+      const plugin: VsshPlugin = {
+        name: 'test-deps',
+        version: '1.0.0',
+        description: 'Test plugin with dependencies',
+        runtimeDependencies: [
+          {
+            command: 'docker',
+            displayName: 'Docker',
+            checkCommand: 'which docker',
+            installHint: 'Install Docker from docker.com'
+          }
+        ],
+        commands: [{
+          name: 'test-command',
+          description: 'Test command',
+          usage: 'test-command',
+          handler: mockHandler
+        }]
+      };
+      
+      // Mock SSH to return path (command found)
+      mockSSH.setResponse('which docker', '/usr/bin/docker');
+      
+      await registry.loadPlugin(plugin);
+      await registry.enablePlugin('test-deps');
+      
+      await registry.executeCommand('test-command', { _: [] });
+      
+      expect(mockHandler).toHaveBeenCalled();
     });
   });
 });

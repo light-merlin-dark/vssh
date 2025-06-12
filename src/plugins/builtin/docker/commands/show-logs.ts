@@ -18,6 +18,7 @@ export async function showLogsCommand(
   
   const docker = new DockerService(context.sshService, context.proxyService);
   
+  
   if (verbose) {
     console.log(`🔍 Fetching logs for ${containers.length} container(s)...`);
   }
