@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.6] - 2025-06-12
+
+### Fixed
+- Fixed npm package bin paths to correctly point to compiled JavaScript files
+- Resolved "command not found" error after global npm installation
+- Ensured executable permissions are set on compiled bin files
+
+## [1.5.0] - 2025-06-12
+
 ### Added
 - **Runtime Dependency System**: Smart dependency checking for plugin commands
   - Automatic detection of required tools (Docker, kubectl, etc.)
@@ -271,6 +280,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+[1.4.6]: https://github.com/light-merlin-dark/vssh/compare/v1.5.0...v1.4.6
 [1.5.0]: https://github.com/light-merlin-dark/vssh/compare/v1.4.1...v1.5.0
 [1.4.1]: https://github.com/light-merlin-dark/vssh/compare/v1.4.0...v1.4.1
 [1.4.0]: https://github.com/light-merlin-dark/vssh/compare/v1.3.0...v1.4.0
