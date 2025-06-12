@@ -5,6 +5,52 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0] - 2025-01-12
+
+### Added
+- **Grafana Plugin**: Auto-discovering dashboard management
+  - `list-grafana-dashboards` (lgd) - Auto-discovers Grafana containers and credentials
+  - `view-grafana-dashboard` (vgd) - Search and view dashboard details
+  - Secure credential storage with AES-256-GCM encryption
+  - Zero-configuration setup - credentials discovered from container environment
+  - Multi-word search support for finding dashboards
+  - Automatic encryption key generation stored in config
+
+- **Enhanced Encryption Service**
+  - Config-based encryption key storage (no separate key files)
+  - Transparent encryption/decryption for plugin credentials
+  - AES-256-GCM with authenticated encryption
+  - Automatic key generation on first use
+
+- **Improved Testing Infrastructure**
+  - Plugin-specific test commands via Makefile
+  - Suppressed unnecessary logging during test runs
+  - Fixed all test failures including encryption service tests
+  - Added `test-all` Makefile target for comprehensive testing
+
+### Changed
+- **Configuration Structure**
+  - Added `encryptionKey` field for storing encryption keys
+  - Grafana plugin disabled by default (requires container to be useful)
+  - Encryption is now completely transparent to users
+
+- **Test Output**
+  - Minimal logging during tests (only errors shown)
+  - Cleaner CI/CD integration with reduced noise
+  - Plugin loader warnings suppressed in test environment
+
+### Fixed
+- Dashboard search now properly handles multi-word queries
+- Process.exit mocking in tests for proper test completion
+- Encryption service tests aligned with config-based key storage
+- Vite CJS deprecation warnings suppressed in plugin tests
+
+### Technical Details
+- Grafana plugin uses Docker inspection for auto-discovery
+- Credentials extracted from container environment variables
+- Plugin credentials stored in `~/.vssh/plugins/grafana.enc`
+- Search algorithm matches all words in query (order-independent)
+
 ## [1.4.1] - 2025-01-11
 
 ### Added
@@ -193,3 +239,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Command blocking for dangerous operations (rm -rf /, dd to disk, etc.)
 - Separate logging for blocked commands
 - SSH key-based authentication only
+
+---
+
+[1.5.0]: https://github.com/light-merlin-dark/vssh/compare/v1.4.1...v1.5.0
+[1.4.1]: https://github.com/light-merlin-dark/vssh/compare/v1.4.0...v1.4.1
+[1.4.0]: https://github.com/light-merlin-dark/vssh/compare/v1.3.0...v1.4.0
+[1.3.0]: https://github.com/light-merlin-dark/vssh/compare/v1.2.0...v1.3.0
+[1.2.0]: https://github.com/light-merlin-dark/vssh/compare/v1.0.1...v1.2.0
+[1.0.1]: https://github.com/light-merlin-dark/vssh/compare/v1.0.0...v1.0.1
+[1.0.0]: https://github.com/light-merlin-dark/vssh/releases/tag/v1.0.0

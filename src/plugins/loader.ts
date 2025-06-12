@@ -32,8 +32,10 @@ export class PluginLoader {
         }
       }
     } catch (error: any) {
-      // Built-in directory might not exist yet
-      console.debug('No built-in plugins directory found');
+      // Built-in directory might not exist yet - silently ignore in tests
+      if (process.env.NODE_ENV !== 'test') {
+        console.debug('No built-in plugins directory found');
+      }
     }
     
     return plugins;
@@ -49,7 +51,9 @@ export class PluginLoader {
       const hasJs = await this.fileExists(indexJsPath);
       
       if (!hasTs && !hasJs) {
-        console.warn(`Plugin at ${pluginPath} has no index file`);
+        if (process.env.NODE_ENV !== 'test') {
+          console.warn(`Plugin at ${pluginPath} has no index file`);
+        }
         return null;
       }
       
@@ -58,19 +62,25 @@ export class PluginLoader {
       const plugin = module.default || module.plugin;
       
       if (!plugin) {
-        console.warn(`Plugin at ${pluginPath} has no default export`);
+        if (process.env.NODE_ENV !== 'test') {
+          console.warn(`Plugin at ${pluginPath} has no default export`);
+        }
         return null;
       }
       
       // Validate plugin structure
       if (!this.isValidPlugin(plugin)) {
-        console.warn(`Plugin at ${pluginPath} has invalid structure`);
+        if (process.env.NODE_ENV !== 'test') {
+          console.warn(`Plugin at ${pluginPath} has invalid structure`);
+        }
         return null;
       }
       
       return plugin;
     } catch (error: any) {
-      console.error(`Failed to load plugin from ${pluginPath}:`, error);
+      if (process.env.NODE_ENV !== 'test') {
+        console.error(`Failed to load plugin from ${pluginPath}:`, error);
+      }
       return null;
     }
   }

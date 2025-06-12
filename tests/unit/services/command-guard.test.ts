@@ -208,6 +208,8 @@ describe('CommandGuardService', () => {
   
   describe('Logging and Display', () => {
     it('should delegate display to CommandGuard', () => {
+      // Mock console.error to prevent output during tests
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       const displaySpy = vi.spyOn(CommandGuard, 'displayBlockedMessage');
       const command = 'rm -rf /';
       const result = guardService.checkCommand(command);
@@ -215,6 +217,9 @@ describe('CommandGuardService', () => {
       guardService.displayBlockedMessage(command, result);
       
       expect(displaySpy).toHaveBeenCalledWith(command, result);
+      
+      // Restore console.error
+      consoleErrorSpy.mockRestore();
     });
     
     it('should delegate logging to CommandGuard', () => {

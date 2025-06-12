@@ -38,10 +38,11 @@ describe('Plugin Test Runner', () => {
           expect(result.exitCode).toBe(0);
           expect(result.stderr).not.toContain('FAIL');
           
-          // Log summary for debugging
+          // Extract summary for assertion (but don't log it)
           if (result.stdout) {
             const summary = extractTestSummary(result.stdout);
-            console.log(`${plugin.name}: ${summary}`);
+            // Verify that tests actually ran
+            expect(summary).not.toBe('No test summary found');
           }
         }, 30000); // 30 second timeout per plugin
       });
@@ -67,7 +68,7 @@ async function discoverPlugins(): Promise<PluginInfo[]> {
       }
     }
   } catch (error) {
-    console.warn('Failed to discover plugins:', error);
+    // Silently ignore discovery errors in tests
   }
   
   return plugins;

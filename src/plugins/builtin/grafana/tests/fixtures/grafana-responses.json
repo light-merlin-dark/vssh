@@ -1,0 +1,124 @@
+{
+  "listDashboards": [
+    {
+      "uid": "merlin-db-metrics-dashboard",
+      "title": "DB Platform Metrics v1.0.0",
+      "url": "/d/merlin-db-metrics-dashboard/db-platform-metrics-v1-0-0",
+      "tags": ["database", "metrics", "production"],
+      "folderTitle": "Production",
+      "isStarred": true
+    },
+    {
+      "uid": "metrics-agent-example",
+      "title": "Metrics Agent Example v1.0.0",
+      "url": "/d/metrics-agent-example/metrics-agent-example-v1-0-0",
+      "tags": ["example", "tutorial"],
+      "folderTitle": "Examples",
+      "isStarred": false
+    },
+    {
+      "uid": "test-dashboard-123",
+      "title": "Test Dashboard",
+      "url": "/d/test-dashboard-123/test-dashboard",
+      "tags": ["test"],
+      "folderTitle": "Development",
+      "isStarred": false
+    }
+  ],
+  "dashboardDetails": {
+    "dashboard": {
+      "uid": "merlin-db-metrics-dashboard",
+      "title": "DB Platform Metrics v1.0.0",
+      "description": "Comprehensive database platform metrics including performance, availability, and resource utilization",
+      "tags": ["database", "metrics", "production"],
+      "version": 5,
+      "panels": [
+        {
+          "id": 1,
+          "title": "CPU Usage"
+        },
+        {
+          "id": 2,
+          "title": "Memory Usage"
+        },
+        {
+          "id": 3,
+          "title": "Query Performance"
+        },
+        {
+          "id": 4,
+          "title": "Connection Pool"
+        },
+        {
+          "id": 5,
+          "title": "Disk I/O"
+        },
+        {
+          "id": 6,
+          "title": "Replication Lag"
+        }
+      ],
+      "templating": {
+        "list": [
+          {
+            "name": "datasource",
+            "type": "datasource"
+          },
+          {
+            "name": "environment",
+            "type": "custom"
+          }
+        ]
+      }
+    },
+    "meta": {
+      "version": 5,
+      "created": "2024-01-01T12:00:00Z",
+      "updated": "2024-12-01T15:30:00Z",
+      "createdBy": "admin",
+      "updatedBy": "devops-team"
+    }
+  },
+  "containerInspect": {
+    "Config": {
+      "Env": [
+        "PATH=/usr/share/grafana/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "GF_PATHS_CONFIG=/etc/grafana/grafana.ini",
+        "GF_PATHS_DATA=/var/lib/grafana",
+        "GF_PATHS_HOME=/usr/share/grafana",
+        "GF_PATHS_LOGS=/var/log/grafana",
+        "GF_PATHS_PLUGINS=/var/lib/grafana/plugins",
+        "GF_PATHS_PROVISIONING=/etc/grafana/provisioning",
+        "GF_SECURITY_ADMIN_USER=admin",
+        "GF_SECURITY_ADMIN_PASSWORD=secretPassword123",
+        "GF_SERVER_ROOT_URL=https://grafana.example.com",
+        "GF_DATABASE_TYPE=sqlite3"
+      ],
+      "ExposedPorts": {
+        "3000/tcp": {}
+      }
+    },
+    "NetworkSettings": {
+      "Networks": {
+        "bridge": {
+          "IPAddress": "172.17.0.2"
+        },
+        "internal": {
+          "IPAddress": "172.18.0.10"
+        }
+      }
+    }
+  },
+  "orgResponse": {
+    "id": 1,
+    "name": "Main Org.",
+    "address": {
+      "address1": "",
+      "address2": "",
+      "city": "",
+      "zipCode": "",
+      "state": "",
+      "country": ""
+    }
+  }
+}

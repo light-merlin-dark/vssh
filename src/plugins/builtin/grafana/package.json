@@ -1,0 +1,17 @@
+{
+  "name": "@vssh/plugin-grafana",
+  "version": "1.0.0",
+  "description": "Grafana dashboard management plugin for vssh",
+  "main": "index.ts",
+  "scripts": {
+    "test": "NODE_NO_WARNINGS=1 vitest run"
+  },
+  "dependencies": {
+    "axios": "^1.7.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@vssh/test-utils": "file:../../../../tests/test-utils",
+    "vitest": "^1.0.0"
+  }
+}

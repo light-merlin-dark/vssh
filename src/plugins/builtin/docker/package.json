@@ -3,8 +3,7 @@
   "version": "1.0.0",
   "description": "Docker management plugin for vssh",
   "scripts": {
-    "test": "vitest run tests/",
-    "test:watch": "vitest watch tests/"
+    "test": "vitest run tests/"
   },
   "keywords": ["vssh", "plugin", "docker"],
   "author": "vssh",

@@ -2,6 +2,9 @@ import { vi } from 'vitest';
 import { homedir } from 'os';
 import { join } from 'path';
 
+// Set NODE_ENV to test to suppress logging
+process.env.NODE_ENV = 'test';
+
 // Mock the config path to use a test directory
 vi.mock('../src/config', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../src/config')>();

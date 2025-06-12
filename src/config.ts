@@ -3,6 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 import * as readline from 'readline';
+import * as crypto from 'crypto';
 
 // Dynamic paths based on user's home directory
 export const PROJECT_PATH = path.join(os.homedir(), '.vssh');
@@ -21,6 +22,7 @@ const configSchema = z.object({
   user: z.string(),
   keyPath: z.string(),
   localMode: z.boolean().optional().default(false),
+  encryptionKey: z.string().optional(),
   plugins: z.object({
     enabled: z.array(z.string()).optional(),
     disabled: z.array(z.string()).optional(),
@@ -33,6 +35,7 @@ export interface Config {
   user: string;
   keyPath: string;
   localMode?: boolean;
+  encryptionKey?: string;
   plugins?: {
     enabled?: string[];
     disabled?: string[];
@@ -67,7 +70,8 @@ export function loadConfig(): Config | null {
       user: envConfig.data.VSSH_USER,
       keyPath: envConfig.data.VSSH_KEY_PATH,
       plugins: {
-        enabled: ['docker', 'coolify']  // Default enabled plugins
+        enabled: ['docker', 'coolify'],  // Default enabled plugins
+        disabled: ['grafana']  // Grafana requires manual configuration
       }
     };
   }
@@ -127,12 +131,17 @@ export async function setupInteractiveConfig(): Promise<Config> {
 
   rl.close();
 
+  // Generate encryption key
+  const encryptionKey = crypto.randomBytes(32).toString('base64');
+
   const config: Config = { 
     host, 
     user, 
     keyPath,
+    encryptionKey,
     plugins: {
-      enabled: ['docker', 'coolify']  // Default enabled plugins
+      enabled: ['docker', 'coolify'],  // Default enabled plugins
+      disabled: ['grafana']  // Grafana requires manual configuration
     }
   };
 
@@ -141,6 +150,7 @@ export async function setupInteractiveConfig(): Promise<Config> {
   fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2));
 
   console.log(`\n✅ Configuration saved to: ${CONFIG_PATH}`);
+  console.log('🔐 Encryption key generated for secure credential storage');
   console.log('\nYou can now use vssh to execute commands on your remote server.');
   console.log('Example: vssh ls -la\n');
 

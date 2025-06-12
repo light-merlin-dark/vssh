@@ -3,11 +3,15 @@
   "user": "testuser",
   "keyPath": "/home/testuser/.ssh/test_rsa",
   "plugins": {
-    "enabled": ["docker", "coolify"],
+    "enabled": [
+      "docker",
+      "coolify"
+    ],
     "disabled": [],
     "config": {
       "docker": {},
       "coolify": {}
     }
-  }
+  },
+  "encryptionKey": "Ifzxo1oLtYI2VQZaXKwRqNvktMnYZyCywpOMq5R74G8="
 }
