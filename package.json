@@ -1,6 +1,6 @@
 {
   "name": "@light-merlin-dark/vssh",
-  "version": "1.4.6",
+  "version": "1.5.0",
   "description": "Model Context Protocol (MCP) enabled SSH proxy with plugin architecture for AI agents",
   "main": "dist/src/index.js",
   "bin": {
@@ -15,8 +15,8 @@
     "test:unit": "vitest run tests/unit",
     "test:integration": "vitest run tests/integration",
     "test:plugins": "vitest run tests/integration/plugin-test-runner.test.ts",
-    "test:plugin": "node scripts/test-plugin-dynamic.js",
-    "test:list-plugins": "node scripts/list-plugins.js",
+    "test:plugin": "ts-node scripts/test-plugin-dynamic.ts",
+    "test:list-plugins": "ts-node scripts/list-plugins.ts",
     "test:all": "npm test && npm run test:plugins",
     "test:old": "npm run test:guard && npm run test:old-plugins",
     "test:guard": "ts-node tests/test-guard.ts",

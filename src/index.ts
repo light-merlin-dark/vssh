@@ -107,6 +107,28 @@ async function main() {
     process.exit(1);
   }
 
+  // Validate config has proper values
+  if (config.host === 'test' || config.keyPath === '/test' || !config.host || !config.keyPath) {
+    console.error('❌ Invalid SSH configuration detected.');
+    console.error('\nYour configuration appears to have placeholder values:');
+    console.error(`  Host: ${config.host}`);
+    console.error(`  User: ${config.user}`);
+    console.error(`  Key Path: ${config.keyPath}`);
+    console.error('\nPlease run: vssh --setup');
+    console.error('to configure your SSH connection properly.\n');
+    process.exit(1);
+  }
+
+  // Check if SSH key file exists
+  try {
+    await fs.access(config.keyPath, fs.constants.R_OK);
+  } catch (error) {
+    console.error(`❌ SSH key file not found or not readable: ${config.keyPath}`);
+    console.error('\nPlease run: vssh --setup');
+    console.error('to select a valid SSH key.\n');
+    process.exit(1);
+  }
+
   // Determine local execution mode
   const isLocalExecution = hasLocalFlag || config.localMode === true;
   

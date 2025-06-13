@@ -9,6 +9,9 @@ build/
 *.js.map
 *.d.ts
 
+# Scripts directory - development only
+scripts/
+
 # Logs and data
 .data/
 logs/

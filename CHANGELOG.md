@@ -7,16 +7,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.4.6] - 2025-06-12
+## [1.5.0] - 2025-06-12
+
+### Added
+- **Enhanced Release Process**: Comprehensive post-release validation
+  - Automated version verification against npm registry
+  - Real SSH connection testing with `vssh echo "Hello world"`
+  - Clear success/failure indicators for CI/CD integration
+  - Intelligent retry logic with registry propagation delays
+
+- **TypeScript Migration**: All scripts converted to TypeScript
+  - `smart-version.ts` - Intelligent version management
+  - `post-validation.ts` - Release validation with SSH testing
+  - `list-plugins.ts` - Plugin discovery utility
+  - `test-plugin-dynamic.ts` - Dynamic plugin testing
+  - Improved type safety and maintainability
+
+### Changed
+- **Release Workflow**: Streamlined and more reliable
+  - Makefile delegates validation to dedicated TypeScript script
+  - Better error handling and user feedback
+  - Actual SSH testing replaces simple help text verification
+  
+- **Development Structure**: Scripts directory improvements
+  - Scripts folder excluded from repository (development only)
+  - TypeScript source files for all tooling
+  - Cleaner project structure
 
 ### Fixed
+- Added proper config validation to prevent cryptic "ENOENT: no such file or directory" errors
+- Show helpful error messages when SSH configuration has placeholder/test values
+- Check if SSH key file exists before attempting connection
+- Guide users to run `vssh --setup` when configuration is invalid
 - Fixed npm package bin paths to correctly point to compiled JavaScript files
 - Resolved "command not found" error after global npm installation
 - Ensured executable permissions are set on compiled bin files
 
-## [1.5.0] - 2025-06-12
-
-### Added
 - **Runtime Dependency System**: Smart dependency checking for plugin commands
   - Automatic detection of required tools (Docker, kubectl, etc.)
   - Mode-aware checking (local vs remote server)
@@ -280,7 +306,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-[1.4.6]: https://github.com/light-merlin-dark/vssh/compare/v1.5.0...v1.4.6
 [1.5.0]: https://github.com/light-merlin-dark/vssh/compare/v1.4.1...v1.5.0
 [1.4.1]: https://github.com/light-merlin-dark/vssh/compare/v1.4.0...v1.4.1
 [1.4.0]: https://github.com/light-merlin-dark/vssh/compare/v1.3.0...v1.4.0
