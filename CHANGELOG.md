@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.1] - 2025-06-13
+
+### Added
+- **Dynamic MCP Context**: Plugin commands now automatically contribute to MCP tool descriptions
+  - Each plugin can define `mcpContext` to document its commands for AI agents
+  - The `run_command` MCP tool dynamically includes all enabled plugin commands
+  - AI agents instantly see available commands without separate discovery
+  - Commands are organized by plugin sections (Docker, Coolify, Grafana)
+
+### Changed
+- **MCP Tool Descriptions**: Enhanced with plugin-aware command examples
+  - Clear examples for each plugin's commands
+  - Better formatting with bullet points
+  - Grouped by functionality for easier AI comprehension
+  - Updates automatically based on enabled plugins
+
 ## [1.5.0] - 2025-06-12
 
 ### Added
@@ -306,6 +322,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+[1.5.1]: https://github.com/light-merlin-dark/vssh/compare/v1.5.0...v1.5.1
 [1.5.0]: https://github.com/light-merlin-dark/vssh/compare/v1.4.1...v1.5.0
 [1.4.1]: https://github.com/light-merlin-dark/vssh/compare/v1.4.0...v1.4.1
 [1.4.0]: https://github.com/light-merlin-dark/vssh/compare/v1.3.0...v1.4.0

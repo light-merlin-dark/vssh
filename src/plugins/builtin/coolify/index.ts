@@ -9,6 +9,14 @@ const coolifyPlugin: VsshPlugin = {
   author: 'vssh',
   dependencies: ['docker'], // Requires docker plugin
   
+  mcpContext: {
+    section: 'COOLIFY COMMANDS',
+    commands: [
+      { command: 'vssh gcp', description: 'Get proxy configuration' },
+      { command: 'vssh lcd', description: 'List dynamic configs' }
+    ]
+  },
+  
   commands: [
     {
       name: 'get-coolify-proxy-config',

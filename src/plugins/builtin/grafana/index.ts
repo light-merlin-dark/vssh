@@ -6,6 +6,14 @@ const grafanaPlugin: VsshPlugin = {
   name: 'grafana',
   version: '1.0.0',
   description: 'Grafana dashboard discovery and viewing',
+  
+  mcpContext: {
+    section: 'GRAFANA COMMANDS',
+    commands: [
+      { command: 'vssh lgd', description: 'List all dashboards' },
+      { command: 'vssh vgd "metrics"', description: 'View dashboard by name' }
+    ]
+  },
   commands: [
     {
       name: 'list-grafana-dashboards',

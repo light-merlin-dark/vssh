@@ -76,6 +76,16 @@ export interface RuntimeDependency {
   optional?: boolean;
 }
 
+export interface McpCommandExample {
+  command: string;
+  description: string;
+}
+
+export interface McpContextContribution {
+  section: string;
+  commands: McpCommandExample[];
+}
+
 export interface VsshPlugin {
   name: string;
   version: string;
@@ -91,6 +101,7 @@ export interface VsshPlugin {
   commands: PluginCommand[];
   mcpTools?: McpToolDefinition[];
   commandGuards?: CommandGuardExtension[];
+  mcpContext?: McpContextContribution;
 }
 
 export interface PluginMetadata {

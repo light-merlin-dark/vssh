@@ -12,6 +12,7 @@ import { PluginRegistry, PluginLoader } from "./plugins";
 import dockerPlugin from "./plugins/builtin/docker";
 import coolifyPlugin from "./plugins/builtin/coolify";
 import proxyPlugin from "./plugins/builtin/proxy";
+import grafanaPlugin from "./plugins/builtin/grafana";
 
 // 1. Boot the CLI in "server mode"
 const server = new McpServer({
@@ -24,6 +25,39 @@ const server = new McpServer({
 // Initialize plugin system
 let registry: PluginRegistry | null = null;
 let commandGuard: CommandGuardService | null = null;
+
+// Build dynamic MCP description from enabled plugins
+function buildRunCommandDescription(): string {
+  let description = `SSH command to execute. Examples:
+
+BASIC USAGE:
+• vssh ls -la                    # Simple command
+• vssh "docker ps -a"            # Command with args  
+• vssh 'ps aux | grep node'      # Pipes (use single quotes)
+
+CORE COMMANDS:
+• vssh --help                    # Show help
+• vssh local-mode on             # Enable local execution
+• vssh local-mode off            # Disable local execution`;
+
+  if (registry) {
+    const enabledPlugins = registry.getEnabledPlugins();
+    
+    for (const plugin of enabledPlugins) {
+      if (plugin.mcpContext && plugin.mcpContext.commands.length > 0) {
+        description += `\n\n${plugin.mcpContext.section}:`;
+        
+        for (const cmd of plugin.mcpContext.commands) {
+          description += `\n• ${cmd.command.padEnd(28)} # ${cmd.description}`;
+        }
+      }
+    }
+  }
+
+  description += `\n\nDangerous commands are automatically blocked for safety.`;
+  
+  return description;
+}
 
 async function initializePlugins(config: Config) {
   const logger = {
@@ -42,6 +76,7 @@ async function initializePlugins(config: Config) {
   await registry.loadPlugin(proxyPlugin);
   await registry.loadPlugin(dockerPlugin);
   await registry.loadPlugin(coolifyPlugin);
+  await registry.loadPlugin(grafanaPlugin);
   
   // Apply command guard extensions
   commandGuard.addExtensions(registry.getCommandGuardExtensions());
@@ -97,7 +132,7 @@ async function initializePlugins(config: Config) {
               
               return {
                 content: [{
-                  type: "text",
+                  type: "text" as const,
                   text: output.trim() || "Command completed successfully"
                 }]
               };
@@ -105,7 +140,7 @@ async function initializePlugins(config: Config) {
               return {
                 isError: true,
                 content: [{
-                  type: "text",
+                  type: "text" as const,
                   text: `Plugin command error: ${error.message}`
                 }]
               };
@@ -140,98 +175,105 @@ function parseFlags(args: string[]): Record<string, any> {
 }
 
 // 2. === TOOLS ================================================================
-/** Tool: run_command – execute a *single* shell command on the remote host */
-server.tool(
-  "run_command",
-  {
-    /** Full shell command *exactly* as it would be typed in a terminal */
-    command: z.string().min(1, "command is required")
-  },
-  async ({ command }) => {
-    // Initialize plugins if not already done
-    if (!registry || !commandGuard) {
-      let cfg = loadConfig();
-      if (!cfg) {
-        return {
-          isError: true,
-          content: [{
-            type: "text",
-            text: "No SSH configuration found. Please run 'vssh --setup' first."
-          }]
-        };
-      }
-      await initializePlugins(cfg);
-    }
-    
-    // Guard rails
-    const guard = commandGuard!.checkCommand(command);
-    
-    // Collect any warnings
-    const warnings = guard.reasons.filter(reason => reason.startsWith('⚠️'));
-    
-    if (guard.isBlocked)
-      return {
-        isError: true,
-        content: [
-          {
-            type: "text",
-            text:
-              `Command blocked – ${guard.reasons.join(", ")}` +
-              `\nRule: ${guard.rule}`
-          }
-        ]
-      };
-
-    // Config (load or interactive first-run)
+// Define the run_command tool handler separately so we can access it
+const runCommandHandler = async ({ command }: { command: string }) => {
+  // Initialize plugins if not already done
+  if (!registry || !commandGuard) {
     let cfg = loadConfig();
     if (!cfg) {
       return {
         isError: true,
-        content: [
-          {
-            type: "text",
-            text: "No SSH configuration found. Please run 'vssh --setup' first."
-          }
-        ]
+        content: [{
+          type: "text" as const,
+          text: "No SSH configuration found. Please run 'vssh --setup' first."
+        }]
       };
     }
-
-    const ssh = new SSHService(cfg);
-    const start = Date.now();
-    
-    try {
-      const output = await ssh.executeCommand(command);
-      const responseText = warnings.length > 0 
-        ? `${warnings.join('\n')}\n\n${output.trim() || "(no stdout/stderr)"}`
-        : output.trim() || "(no stdout/stderr)";
-        
-      return {
-        content: [
-          {
-            type: "text",
-            text: responseText
-          }
-        ],
-        annotations: {
-          durationMs: Date.now() - start,
-          ...(warnings.length > 0 && { warnings: warnings.length })
-        }
-      };
-    } catch (error: any) {
-      return {
-        isError: true,
-        content: [
-          {
-            type: "text",
-            text: `SSH execution error: ${error.message}`
-          }
-        ],
-        annotations: {
-          durationMs: Date.now() - start
-        }
-      };
-    }
+    await initializePlugins(cfg);
   }
+  
+  // Guard rails
+  const guard = commandGuard!.checkCommand(command);
+  
+  // Collect any warnings
+  const warnings = guard.reasons.filter(reason => reason.startsWith('⚠️'));
+  
+  if (guard.isBlocked)
+    return {
+      isError: true,
+      content: [
+        {
+          type: "text" as const,
+          text:
+            `Command blocked – ${guard.reasons.join(", ")}` +
+            `\nRule: ${guard.rule}`
+        }
+      ]
+    };
+
+  // Config (load or interactive first-run)
+  let cfg = loadConfig();
+  if (!cfg) {
+    return {
+      isError: true,
+      content: [
+        {
+          type: "text" as const,
+          text: "No SSH configuration found. Please run 'vssh --setup' first."
+        }
+      ]
+    };
+  }
+
+  const ssh = new SSHService(cfg);
+  const start = Date.now();
+  
+  try {
+    const output = await ssh.executeCommand(command);
+    const responseText = warnings.length > 0 
+      ? `${warnings.join('\n')}\n\n${output.trim() || "(no stdout/stderr)"}`
+      : output.trim() || "(no stdout/stderr)";
+      
+    return {
+      content: [
+        {
+          type: "text" as const,
+          text: responseText
+        }
+      ],
+      annotations: {
+        durationMs: Date.now() - start,
+        ...(warnings.length > 0 && { warnings: warnings.length })
+      }
+    };
+  } catch (error: any) {
+    return {
+      isError: true,
+      content: [
+        {
+          type: "text" as const,
+          text: `SSH execution error: ${error.message}`
+        }
+      ],
+      annotations: {
+        durationMs: Date.now() - start
+      }
+    };
+  }
+};
+
+// Function to get the command schema with dynamic description
+function getRunCommandSchema() {
+  return {
+    command: z.string().min(1, "command is required").describe(buildRunCommandDescription())
+  };
+}
+
+/** Tool: run_command – execute a *single* shell command on the remote host */
+server.tool(
+  "run_command",
+  getRunCommandSchema(),
+  runCommandHandler
 );
 
 /** Tool: get_local_mode – returns the current local mode status from the config */
@@ -245,7 +287,7 @@ server.tool(
         return {
           isError: true,
           content: [{
-            type: "text",
+            type: "text" as const,
             text: "No SSH configuration found. Please run 'vssh --setup' first."
           }]
         };
@@ -253,7 +295,7 @@ server.tool(
       
       return {
         content: [{
-          type: "text",
+          type: "text" as const,
           text: `Local mode is currently ${cfg.localMode ? 'enabled' : 'disabled'}`
         }]
       };
@@ -261,7 +303,7 @@ server.tool(
       return {
         isError: true,
         content: [{
-          type: "text",
+          type: "text" as const,
           text: `Error reading configuration: ${error.message}`
         }]
       };
@@ -282,7 +324,7 @@ server.tool(
         return {
           isError: true,
           content: [{
-            type: "text",
+            type: "text" as const,
             text: "No SSH configuration found. Please run 'vssh --setup' first."
           }]
         };
@@ -296,7 +338,7 @@ server.tool(
       
       return {
         content: [{
-          type: "text",
+          type: "text" as const,
           text: `Local mode has been ${enabled ? 'enabled' : 'disabled'} successfully`
         }]
       };
@@ -304,7 +346,7 @@ server.tool(
       return {
         isError: true,
         content: [{
-          type: "text",
+          type: "text" as const,
           text: `Error updating configuration: ${error.message}`
         }]
       };

@@ -21,6 +21,18 @@ const dockerPlugin: VsshPlugin = {
     }
   ],
   
+  mcpContext: {
+    section: 'DOCKER COMMANDS',
+    commands: [
+      { command: 'vssh ldc', description: 'List all containers' },
+      { command: 'vssh gdc myapp', description: 'Find container by name' },
+      { command: 'vssh sdl web --tail 50', description: 'Show container logs' },
+      { command: 'vssh ldp', description: 'List port mappings' },
+      { command: 'vssh ldn', description: 'List networks' },
+      { command: 'vssh sdi', description: 'Show Docker system info' }
+    ]
+  },
+  
   commands: [
     {
       name: 'list-docker-containers',
