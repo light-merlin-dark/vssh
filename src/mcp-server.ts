@@ -101,8 +101,6 @@ async function initializePlugins(config: Config) {
               ...parseFlags(positional)     // 2️⃣ mutate the clone, not the original
             };
             
-            // Debug logging to trace argument flow
-            console.error(`[MCP DEBUG] Tool: ${command.mcpName}, Args: ${JSON.stringify(parsedArgs._)}`);
             
             try {
               // Create a string buffer to capture output
