@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.9] - 2025-06-14
+
+### Fixed
+- **MCP Tool Argument Handling**: Fixed critical issue where MCP tools were not receiving arguments correctly
+  - `parseFlags()` was mutating the args array in-place, causing positional arguments to be lost
+  - MCP tools like `view_grafana_dashboard` were searching for command name instead of actual arguments
+  - Added array cloning before flag parsing to preserve original arguments
+  - Implemented defensive fallbacks for search term extraction (supports `search` and `query` properties)
+  - Improved Zod schema with default array to prevent silent failures
+  - Added comprehensive unit tests covering MCP and CLI argument handling scenarios
+  - All MCP tools now correctly process arguments matching CLI behavior
+
+### Added
+- **MCP Argument Testing**: New test suite specifically for MCP tool argument handling
+  - Tests positional arguments, named arguments, and fallback scenarios
+  - Validates argument extraction works consistently between MCP and CLI contexts
+  - Prevents regression of argument handling issues
+
 ## [1.5.2] - 2025-06-14
 
 ### Added
