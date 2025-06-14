@@ -1,6 +1,6 @@
 {
   "name": "@vssh/plugin-grafana",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Grafana dashboard management plugin for vssh",
   "main": "index.ts",
   "scripts": {
