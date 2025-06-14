@@ -6,8 +6,11 @@ export async function viewDashboardCommand(
   context: PluginContext,
   args: Record<string, any>
 ): Promise<void> {
+  // Debug: log the args to understand what we're getting
+  console.log('DEBUG args:', JSON.stringify(args, null, 2));
+  
   // When called via MCP, args._[0] is the command name, so we need args._[1]
-  // When called via CLI, args._[0] is the search term
+  // When called via CLI, args._[0] is the search term  
   const searchTerm = args._[0] === 'view-grafana-dashboard' ? args._[1] : args._[0];
   
   if (!searchTerm) {
