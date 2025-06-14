@@ -7,6 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.0] - 2025-06-14
+
+### Added
+- **File Editor Plugin**: Advanced file editing capabilities for AI agents and CLI users
+  - New `edit-file` command (alias: `ef`) with sophisticated editing operations
+  - Support for multiple edit types:
+    - Simple search and replace: `--search "old" --replace "new"`
+    - Regular expression replacements: `--regex "pattern" --with "replacement" --flags "g"`
+    - Line insertion: `--insert-at 5 --content "text"` or `--after/--before "pattern"`
+    - Line deletion: `--delete-line 10` or range deletion
+    - Complex JSON-based edits: `--edits '[{"type":"replace","search":"foo","replace":"bar"}]'`
+  - Safety features:
+    - Automatic backup creation (`.vssh.backup` files)
+    - Dry-run mode (`--dry-run`) to preview changes
+    - System file protection (blocks editing of /etc, /sys, /proc, etc.)
+  - Full MCP integration:
+    - Exposed as `edit_file` MCP tool
+    - Comprehensive parameter schema for AI agents
+    - Works with both local and remote files via SSH
+  - Examples:
+    ```bash
+    vssh edit-file config.yml --search "localhost" --replace "example.com"
+    vssh ef app.js --regex "console\\.log" --with "// console.log" --flags "g"
+    vssh ef script.sh --insert-at 0 --content "#!/bin/bash"
+    vssh ef test.txt --dry-run --edits '[{"type":"delete","line":5}]'
+    ```
+
+### Enhanced
+- **Plugin System**: File Editor plugin seamlessly integrates with existing architecture
+- **MCP Tools**: Added `edit_file` tool for AI agents to perform sophisticated file edits
+- **Safety Guards**: Extended command guard system to protect critical system files from editing
+
 ## [1.5.1] - 2025-06-13
 
 ### Added

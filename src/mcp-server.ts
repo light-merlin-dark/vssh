@@ -13,6 +13,7 @@ import dockerPlugin from "./plugins/builtin/docker";
 import coolifyPlugin from "./plugins/builtin/coolify";
 import proxyPlugin from "./plugins/builtin/proxy";
 import grafanaPlugin from "./plugins/builtin/grafana";
+import fileEditorPlugin from "./plugins/builtin/file-editor";
 
 // 1. Boot the CLI in "server mode"
 const server = new McpServer({
@@ -77,6 +78,7 @@ async function initializePlugins(config: Config) {
   await registry.loadPlugin(dockerPlugin);
   await registry.loadPlugin(coolifyPlugin);
   await registry.loadPlugin(grafanaPlugin);
+  await registry.loadPlugin(fileEditorPlugin);
   
   // Apply command guard extensions
   commandGuard.addExtensions(registry.getCommandGuardExtensions());

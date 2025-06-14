@@ -1,0 +1,14 @@
+{
+  "name": "@vssh/file-editor-plugin",
+  "version": "1.0.0",
+  "description": "Advanced file editing plugin for vssh",
+  "private": true,
+  "main": "index.js",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "diff": "^5.1.0"
+  }
+}

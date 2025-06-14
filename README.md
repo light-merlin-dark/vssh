@@ -52,6 +52,7 @@ Once configured, AI agents gain access to:
 - `get_coolify_proxy_config` - Coolify configuration (Coolify plugin)
 - `list_grafana_dashboards` - List all Grafana dashboards (Grafana plugin)
 - `view_grafana_dashboard` - View dashboard details (Grafana plugin)
+- `edit_file` - Advanced file editing operations (File Editor plugin)
 - And many more plugin-based tools!
 
 ## ✨ Key Features
@@ -156,6 +157,12 @@ vssh lcd                      # List coolify dynamic configs
 vssh lgd                      # List grafana dashboards
 vssh vgd "metrics"            # View dashboard by name/search
 
+# File editor plugin commands
+vssh edit-file /etc/app.conf --search "localhost" --replace "example.com"
+vssh ef config.yml --regex "version: \d+" --with "version: 2"
+vssh ef script.sh --insert-at 0 --content "#!/bin/bash"
+vssh ef app.js --dry-run --edits '[{"type":"replace","search":"console.log","replace":"//console.log"}]'
+
 # Plugin management
 vssh plugins list             # List all plugins
 vssh plugins enable docker    # Enable a plugin
@@ -189,6 +196,21 @@ Grafana dashboard management with auto-discovery:
 - Auto-discovers Grafana containers and credentials on first use
 - Securely stores credentials with AES-256-GCM encryption
 - No manual configuration required - just run and it works!
+
+#### File Editor Plugin
+Advanced file editing capabilities:
+- `edit-file` (ef) - Edit files with sophisticated operations
+- Supports multiple edit types:
+  - Simple search and replace
+  - Regular expression replacements with flags
+  - Line insertion (by number, after/before pattern)
+  - Line deletion (single line or range)
+  - Complex multi-operation edits via JSON
+- Safety features:
+  - Automatic backup creation (`.vssh.backup`)
+  - Dry-run mode to preview changes
+  - System file protection
+- Works with both local and remote files
 
 ### Managing Plugins
 ```bash

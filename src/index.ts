@@ -76,8 +76,53 @@ IMPORTANT FOR AI TOOLS:
 `);
 }
 
+/**
+ * Detects if the CLI is being called by Claude (AI assistant)
+ */
+function isCalledByClaude(): boolean {
+  // Check for CLAUDECODE environment variable
+  if (process.env.CLAUDECODE === '1') {
+    return true;
+  }
+  
+  // Check for lack of TTY (Claude runs commands without TTY)
+  if (!process.stdin.isTTY && !process.stdout.isTTY && !process.stderr.isTTY) {
+    // Additional check for Claude-specific patterns
+    if (process.env.CLAUDE_CODE_ENTRYPOINT === 'cli') {
+      return true;
+    }
+  }
+  
+  return false;
+}
+
 async function main() {
   const args = process.argv.slice(2);
+
+  // Detect if Claude is calling the CLI directly
+  if (isCalledByClaude()) {
+    console.log(`
+🤖 Hello Claude! It looks like you're calling vssh directly.
+
+For better integration, you should use the MCP tool instead:
+• Use: mcp__vssh__run_command
+• Example: mcp__vssh__run_command({ command: "ls -la" })
+
+The MCP tools provide:
+✅ Better error handling and structured responses
+✅ Automatic command safety checks
+✅ Proper integration with your capabilities
+
+Available MCP tools:
+• mcp__vssh__run_command - Execute SSH commands
+• mcp__vssh__list_docker_containers - List Docker containers
+• mcp__vssh__get_docker_container - Get container details
+• mcp__vssh__show_docker_logs - Show container logs
+• And more...
+
+Continuing with direct CLI execution anyway...
+`);
+  }
 
   // Check for --local flag
   const localIndex = args.findIndex(arg => arg === '--local' || arg === '-l');
