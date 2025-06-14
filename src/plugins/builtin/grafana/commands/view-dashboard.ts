@@ -6,8 +6,9 @@ export async function viewDashboardCommand(
   context: PluginContext,
   args: Record<string, any>
 ): Promise<void> {
-  // Both MCP and CLI calls put the command/alias as args._[0], so search term is always args._[1]
-  const searchTerm = args._[1];
+  // Extract search term with defensive fallbacks
+  const [, rawTerm] = args._;
+  const searchTerm = rawTerm || args.search || args.query;
   
   if (!searchTerm) {
     context.logger.error('Please provide a dashboard name or search term');

@@ -91,13 +91,18 @@ async function initializePlugins(config: Config) {
         server.tool(
           command.mcpName,
           {
-            args: z.array(z.string()).optional().describe("Command arguments")
+            args: z.array(z.string()).default([]).describe("Command arguments")
           },
           async ({ args = [] }) => {
+            const positional = [...args];   // 1️⃣ safe clone
+            
             const parsedArgs = {
-              _: [command.name, ...args],
-              ...parseFlags(args)
+              _: [command.name, ...positional],
+              ...parseFlags(positional)     // 2️⃣ mutate the clone, not the original
             };
+            
+            // Debug logging to trace argument flow
+            console.error(`[MCP DEBUG] Tool: ${command.mcpName}, Args: ${JSON.stringify(parsedArgs._)}`);
             
             try {
               // Create a string buffer to capture output
