@@ -86,11 +86,34 @@ export class GrafanaClient {
 
   async searchDashboards(query: string): Promise<GrafanaDashboard[]> {
     const allDashboards = await this.listDashboards();
-    const queryWords = query.toLowerCase().split(/\s+/).filter(word => word.length > 0);
+    const queryLower = query.toLowerCase().trim();
 
+    // First try exact match (case-insensitive)
+    const exactMatches = allDashboards.filter(dashboard => 
+      dashboard.title.toLowerCase() === queryLower ||
+      dashboard.uid.toLowerCase() === queryLower
+    );
+    
+    if (exactMatches.length > 0) {
+      return exactMatches;
+    }
+
+    // Then try substring match in title
+    const titleMatches = allDashboards.filter(dashboard =>
+      dashboard.title.toLowerCase().includes(queryLower)
+    );
+    
+    if (titleMatches.length > 0) {
+      return titleMatches;
+    }
+
+    // Finally, try word-based search across all fields
+    const queryWords = queryLower.split(/\s+/).filter(word => word.length > 0);
+    
     return allDashboards.filter(dashboard => {
       const searchableText = [
         dashboard.title.toLowerCase(),
+        dashboard.uid.toLowerCase(),
         ...(dashboard.tags?.map(tag => tag.toLowerCase()) || []),
         dashboard.folderTitle?.toLowerCase() || ''
       ].join(' ');

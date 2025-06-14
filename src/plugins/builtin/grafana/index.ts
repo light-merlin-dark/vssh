@@ -11,7 +11,9 @@ const grafanaPlugin: VsshPlugin = {
     section: 'GRAFANA COMMANDS',
     commands: [
       { command: 'vssh lgd', description: 'List all dashboards' },
-      { command: 'vssh vgd "metrics"', description: 'View dashboard by name' }
+      { command: 'vssh vgd "db metrics"', description: 'View dashboard (partial match)' },
+      { command: 'vssh vgd libsql', description: 'View LibSQL dashboard' },
+      { command: 'vssh vgd server', description: 'View server dashboard' }
     ]
   },
   commands: [
@@ -25,7 +27,7 @@ const grafanaPlugin: VsshPlugin = {
     },
     {
       name: 'view-grafana-dashboard',
-      description: 'View details of a Grafana dashboard by name',
+      description: 'View details of a Grafana dashboard by name, UID, or partial match',
       usage: 'vssh grafana view <search-term>',
       handler: viewDashboardCommand,
       aliases: ['vgd'],

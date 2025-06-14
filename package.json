@@ -1,6 +1,6 @@
 {
   "name": "@light-merlin-dark/vssh",
-  "version": "1.5.3",
+  "version": "1.5.4",
   "description": "Model Context Protocol (MCP) enabled SSH proxy with plugin architecture for AI agents",
   "main": "dist/src/index.js",
   "bin": {

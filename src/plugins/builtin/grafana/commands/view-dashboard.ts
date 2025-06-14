@@ -6,11 +6,17 @@ export async function viewDashboardCommand(
   context: PluginContext,
   args: Record<string, any>
 ): Promise<void> {
-  const searchTerm = args._[0];
+  // When called via MCP, args._[0] is the command name, so we need args._[1]
+  // When called via CLI, args._[0] is the search term
+  const searchTerm = args._[0] === 'view-grafana-dashboard' ? args._[1] : args._[0];
   
   if (!searchTerm) {
     context.logger.error('Please provide a dashboard name or search term');
     context.logger.info('Usage: vssh grafana view <search-term>');
+    context.logger.info('Examples:');
+    context.logger.info('  vssh vgd "db metrics"');
+    context.logger.info('  vssh vgd libsql');
+    context.logger.info('  vssh vgd server');
     process.exit(1);
   }
   
@@ -30,7 +36,43 @@ export async function viewDashboardCommand(
     const dashboards = await client.searchDashboards(searchTerm);
     
     if (dashboards.length === 0) {
-      console.log(`No dashboards found matching "${searchTerm}"`);
+      console.log(`No dashboards found matching "${searchTerm}"\n`);
+      
+      // Show available dashboards instead
+      console.log('Available dashboards:\n');
+      const allDashboards = await client.listDashboards();
+      
+      if (allDashboards.length === 0) {
+        console.log('No dashboards available');
+        return;
+      }
+      
+      // Group by folder for better organization
+      const byFolder = new Map<string, typeof allDashboards>();
+      
+      for (const dashboard of allDashboards) {
+        const folder = dashboard.folderTitle || 'General';
+        if (!byFolder.has(folder)) {
+          byFolder.set(folder, []);
+        }
+        byFolder.get(folder)!.push(dashboard);
+      }
+      
+      // Display dashboards
+      for (const [folder, dashboards] of byFolder) {
+        if (folder !== 'General') {
+          console.log(`📁 ${folder}`);
+        }
+        
+        for (const dashboard of dashboards) {
+          const tags = dashboard.tags && dashboard.tags.length > 0 ? ` [${dashboard.tags.join(', ')}]` : '';
+          console.log(`  • ${dashboard.title} (${dashboard.uid})${tags}`);
+        }
+        
+        console.log();
+      }
+      
+      console.log('💡 Try searching with a partial name or UID from the list above');
       return;
     }
     
