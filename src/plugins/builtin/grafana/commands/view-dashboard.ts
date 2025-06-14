@@ -6,13 +6,8 @@ export async function viewDashboardCommand(
   context: PluginContext,
   args: Record<string, any>
 ): Promise<void> {
-  console.log('DEBUG: viewDashboardCommand called');
-  console.log('DEBUG args:', JSON.stringify(args, null, 2));
-  
-  // When called via MCP, args._[0] is the command name, so we need args._[1]
-  // When called via CLI, args._[0] is the search term  
-  const searchTerm = args._[0] === 'view-grafana-dashboard' ? args._[1] : args._[0];
-  console.log(`DEBUG: extracted searchTerm = "${searchTerm}"`);
+  // Both MCP and CLI calls put the command/alias as args._[0], so search term is always args._[1]
+  const searchTerm = args._[1];
   
   if (!searchTerm) {
     context.logger.error('Please provide a dashboard name or search term');
@@ -37,9 +32,7 @@ export async function viewDashboardCommand(
   
   try {
     // Search for dashboards matching the term
-    console.log(`DEBUG: searching for "${searchTerm}"`);
     const dashboards = await client.searchDashboards(searchTerm);
-    console.log(`DEBUG: found ${dashboards.length} dashboards`);
     
     if (dashboards.length === 0) {
       console.log(`No dashboards found matching "${searchTerm}"\n`);
