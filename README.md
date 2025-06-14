@@ -315,6 +315,7 @@ Example dependency error:
 4. **Predictable Permissions**: Simple patterns like `Bash(vssh:*)` just work
 5. **Clear Feedback**: Structured output perfect for AI interpretation
 6. **Safety Net**: Multi-layer protection against dangerous commands
+7. **Claude Detection**: Automatically detects when Claude is using the CLI directly and provides helpful guidance to use MCP tools instead
 
 ### Common AI Tasks Made Simple
 
@@ -342,6 +343,34 @@ vssh local-mode status            # Check current mode
 vssh local-mode on                # Enable local execution
 vssh --local docker ps            # One-off local command
 ```
+
+### Smart Claude Detection
+
+vssh automatically detects when Claude (Anthropic's AI assistant) is calling the CLI directly instead of using the MCP tools. This helps guide Claude to use the proper integration method for better performance and reliability.
+
+**How it works:**
+- Detects Claude-specific environment variables (`CLAUDECODE=1`)
+- Checks for non-TTY execution context
+- Displays a friendly reminder about available MCP tools
+- Still executes the command for compatibility
+
+**What Claude sees:**
+```
+🤖 Hello Claude! It looks like you're calling vssh directly.
+
+For better integration, you should use the MCP tool instead:
+• Use: mcp__vssh__run_command
+• Example: mcp__vssh__run_command({ command: "ls -la" })
+
+Available MCP tools:
+• mcp__vssh__run_command - Execute SSH commands
+• mcp__vssh__list_docker_containers - List Docker containers
+• And more...
+
+Continuing with direct CLI execution anyway...
+```
+
+This ensures that AI assistants always get the best possible experience with vssh, whether they're using the CLI or MCP tools.
 
 ## ⚙️ Configuration
 

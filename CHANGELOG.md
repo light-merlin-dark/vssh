@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.2] - 2025-06-14
+
+### Added
+- **Smart Claude Detection**: Automatically detects when Claude (Anthropic's AI assistant) is calling the CLI directly
+  - Detects Claude-specific environment variables (`CLAUDECODE=1`, `CLAUDE_CODE_ENTRYPOINT=cli`)
+  - Checks for non-TTY execution context as secondary indicator
+  - Displays friendly guidance to use MCP tools instead of direct CLI
+  - Lists available MCP tools with examples for better integration
+  - Still executes commands for backward compatibility
+  - Helps prevent AI assistants from using suboptimal integration methods
+
+### Enhanced
+- **AI Integration**: Improved guidance for AI assistants to use the proper MCP tools
+- **User Experience**: Clear messaging when incorrect usage patterns are detected
+
 ## [1.6.0] - 2025-06-14
 
 ### Added
