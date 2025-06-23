@@ -1,6 +1,6 @@
 {
   "name": "@light-merlin-dark/vssh",
-  "version": "1.5.10",
+  "version": "1.6.0",
   "description": "Model Context Protocol (MCP) enabled SSH proxy with plugin architecture for AI agents",
   "main": "dist/src/index.js",
   "bin": {
@@ -24,7 +24,8 @@
     "test:mcp": "npm run build && ts-node tests/test-mcp.ts",
     "prepublishOnly": "npm run build",
     "lint": "tsc --noEmit",
-    "start:mcp": "node dist/mcp-server.js"
+    "start:mcp": "node dist/mcp-server.js",
+    "call-mcp": "ts-node src/utils/call-mcp.ts"
   },
   "keywords": [
     "ssh",

@@ -6,6 +6,7 @@ import { SSHService } from './services/ssh';
 import { CommandGuardService } from './services/command-guard-service';
 import { ProxyService } from './services/proxy-service';
 import { handlePluginsCommand } from './cli/plugins';
+import { handleInstallCommand } from './cli/install';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 
@@ -21,6 +22,7 @@ SYNTAX:
   vssh <command> [arguments...]
   vssh "full command string"  # AI-friendly: entire command in quotes
   vssh --setup                # Interactive setup wizard
+  vssh install                # Install vssh as MCP server in Claude Code
   vssh --help                 # Show this help message
   vssh --local <command>      # Execute command locally instead of on remote server
 
@@ -99,8 +101,16 @@ function isCalledByClaude(): boolean {
 async function main() {
   const args = process.argv.slice(2);
 
+  // Skip Claude detection message for certain commands
+  const skipClaudeMessage = args.length === 0 || 
+    args[0] === '--help' || 
+    args[0] === '-h' || 
+    args[0] === '--setup' || 
+    args[0] === 'install' ||
+    args[0] === 'plugins';
+
   // Detect if Claude is calling the CLI directly
-  if (isCalledByClaude()) {
+  if (isCalledByClaude() && !skipClaudeMessage) {
     console.log(`
 🤖 Hello Claude! It looks like you're calling vssh directly.
 
@@ -141,6 +151,12 @@ Continuing with direct CLI execution anyway...
   // Handle setup
   if (args[0] === '--setup') {
     await setupInteractiveConfig();
+    process.exit(0);
+  }
+
+  // Handle install
+  if (args[0] === 'install') {
+    await handleInstallCommand();
     process.exit(0);
   }
 

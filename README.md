@@ -1,10 +1,10 @@
-# vssh 🤖
+# VSSH
 
-**The Model Context Protocol (MCP) enabled SSH proxy for AI agents.** 
+**The Model Context Protocol (MCP) enabled SSH proxy for AI agents.**
 
 Built from the ground up for seamless integration with Claude Code, Claude Desktop, and other AI tools that support MCP. vssh transforms how AI agents manage remote servers by providing a safe, intuitive, and extensible command interface.
 
-## 🚀 Why vssh?
+## 🚀 Why VSSH?
 
 ### Native MCP Integration
 vssh is a first-class MCP tool, meaning AI agents can:
@@ -33,12 +33,8 @@ Extend vssh with specialized functionality:
 # Install vssh globally
 npm install -g @light-merlin-dark/vssh
 
-# Add to Claude Code
-claude mcp add-json vssh '{
-  "type":"stdio",
-  "command":"vssh-mcp",
-  "env":{"NODE_NO_WARNINGS":"1"}
-}'
+# Install to Claude Code
+vssh install
 ```
 
 ### Available MCP Tools
@@ -243,7 +239,7 @@ const myPlugin: VsshPlugin = {
   name: 'my-plugin',
   version: '1.0.0',
   description: 'My custom plugin',
-  
+
   // Declare runtime dependencies
   runtimeDependencies: [
     {
@@ -253,7 +249,7 @@ const myPlugin: VsshPlugin = {
       installHint: 'Install kubectl from https://kubernetes.io/docs/tasks/tools/'
     }
   ],
-  
+
   // Plugin commands
   commands: [
     {
@@ -265,7 +261,7 @@ const myPlugin: VsshPlugin = {
       }
     }
   ],
-  
+
   // Optional MCP tool definitions
   mcpTools: [
     {
@@ -274,7 +270,7 @@ const myPlugin: VsshPlugin = {
       inputSchema: { type: 'object', properties: {} }
     }
   ],
-  
+
   // Optional safety guards
   commandGuards: [
     {
