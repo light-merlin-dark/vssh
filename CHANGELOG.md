@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.1] - 2025-06-23
+
+### Added
+- **Simplified Installation**: New `vssh install` command for easy Claude Code setup
+  - Users can now install with just `vssh install` instead of complex `claude mcp add-json` command
+  - Automatic detection of missing dependencies with helpful error messages
+  - Checks for vssh-mcp availability before attempting installation
+  - Provides fallback manual installation instructions if needed
+
+- **call-mcp Utility**: Developer tool for programmatic MCP server interaction
+  - Located in `src/utils/call-mcp.ts` for testing and scripting
+  - Eliminates need for echo commands when interacting with MCP servers
+  - Provides both CLI and library interfaces
+  - Enables better integration testing and automation
+  - Includes comprehensive documentation in `src/utils/README.md`
+
+### Enhanced
+- **Claude Detection**: Improved to skip warning messages for utility commands
+- **Developer Experience**: Added MCP server integration tests using call-mcp utility
+- **Documentation**: Updated README with simplified installation instructions
+
 ## [1.5.9] - 2025-06-14
 
 ### Fixed
