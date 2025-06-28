@@ -1,6 +1,7 @@
 import { SSHService } from '../services/ssh';
 import { CommandGuardService } from '../services/command-guard-service';
 import { ProxyService } from '../services/proxy-service';
+import { z } from 'zod';
 
 export interface VsshConfig {
   host: string;
@@ -49,6 +50,9 @@ export interface PluginCommand {
   examples?: string[];
   handler: CommandHandler;
   mcpName?: string;
+  inputSchema?: z.ZodSchema<any>;
+  outputSchema?: z.ZodSchema<any>;
+  deprecated?: boolean;
 }
 
 export interface McpToolDefinition {
@@ -102,6 +106,7 @@ export interface VsshPlugin {
   mcpTools?: McpToolDefinition[];
   commandGuards?: CommandGuardExtension[];
   mcpContext?: McpContextContribution;
+  configSchema?: z.ZodSchema<any>;
 }
 
 export interface PluginMetadata {
@@ -111,4 +116,33 @@ export interface PluginMetadata {
   author?: string;
   enabled: boolean;
   dependencies: string[];
+}
+
+// Standard response format
+export const StandardResponseSchema = z.object({
+  status: z.enum(['success', 'error', 'warning']),
+  data: z.any().optional(),
+  error: z.object({
+    code: z.string(),
+    message: z.string(),
+    details: z.any().optional()
+  }).optional(),
+  metadata: z.object({
+    timestamp: z.string(),
+    duration: z.number(),
+    plugin: z.string(),
+    command: z.string()
+  })
+});
+
+export type StandardResponse = z.infer<typeof StandardResponseSchema>;
+
+// MCP Response type
+export interface McpResponse {
+  content: Array<{
+    type: 'text';
+    text: string;
+  }>;
+  isError?: boolean;
+  annotations?: Record<string, any>;
 }

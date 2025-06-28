@@ -20,7 +20,7 @@ export async function listNetworksCommand(
     const idWidth = Math.max(12, ...networks.map(n => n.id.length));
     const nameWidth = Math.max(10, ...networks.map(n => n.name.length));
     const driverWidth = Math.max(10, ...networks.map(n => n.driver.length));
-    const scopeWidth = Math.max(10, ...networks.map(n => n.scope.length));
+    const scopeWidth = Math.max(10, ...networks.map(n => n.scope?.length || 0));
     
     // Print header
     console.log(
@@ -37,7 +37,7 @@ export async function listNetworksCommand(
         network.id.substring(0, 12).padEnd(idWidth) + '  ' +
         network.name.padEnd(nameWidth) + '  ' +
         network.driver.padEnd(driverWidth) + '  ' +
-        network.scope.padEnd(scopeWidth)
+        (network.scope || '').padEnd(scopeWidth)
       );
     }
   } catch (error: any) {

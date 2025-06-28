@@ -1,5 +1,8 @@
-import { PluginContext, ParsedArgs } from '../../../types';
+import { PluginContext, ParsedArgs, McpResponse } from '../../../types';
+import { formatResponse, formatError } from '../../../response-utils';
 import { DockerService } from '../services/docker-service';
+import { ContainerHandler } from '../handlers/container-handler';
+import { ListContainersArgsSchema } from '../types';
 
 export async function listContainersCommand(
   context: PluginContext,
@@ -39,5 +42,34 @@ export async function listContainersCommand(
   } catch (error: any) {
     context.logger.error(`Failed to list containers: ${error.message}`);
     process.exit(1);
+  }
+}
+
+// New MCP-compatible handler that returns structured responses
+export async function listContainersMcpHandler(
+  context: PluginContext,
+  args: ParsedArgs
+): Promise<McpResponse> {
+  const start = Date.now();
+  const docker = new DockerService(context.sshService, context.proxyService);
+  const handler = new ContainerHandler(docker);
+  
+  try {
+    const containers = await handler.list(context, {
+      limit: args.limit,
+      filter: args.all ? {} : { status: 'running' }
+    });
+    
+    return formatResponse(containers, {
+      plugin: 'docker',
+      command: 'list-containers',
+      duration: Date.now() - start
+    });
+  } catch (error: any) {
+    return formatError(error, {
+      plugin: 'docker',
+      command: 'list-containers',
+      duration: Date.now() - start
+    });
   }
 }

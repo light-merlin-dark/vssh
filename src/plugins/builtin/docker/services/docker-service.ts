@@ -1,21 +1,10 @@
 import { SSHService } from '../../../../services/ssh';
 import { ProxyService } from '../../../../services/proxy-service';
 
-export interface Container {
-  id: string;
-  name: string;
-  status: string;
-  image: string;
-  ports?: string;
-  created?: string;
-}
+import { Container, Network, DockerInfo } from '../types';
 
-export interface Network {
-  id: string;
-  name: string;
-  driver: string;
-  scope: string;
-}
+// Re-export for backwards compatibility
+export type { Container, Network } from '../types';
 
 export interface DockerStats {
   containers: {
@@ -191,5 +180,10 @@ export class DockerService {
     return await this.execute(
       `docker stats --no-stream --format "table {{.Container}}\t{{.Name}}\t{{.CPU}}\t{{.MemUsage}}" | head -n ${limit + 1}`
     );
+  }
+  
+  async removeContainer(id: string, force: boolean = false): Promise<void> {
+    const forceArg = force ? '-f' : '';
+    await this.execute(`docker rm ${forceArg} ${id}`);
   }
 }

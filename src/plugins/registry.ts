@@ -11,6 +11,7 @@ export class PluginRegistry {
   private _context: PluginContext;
   private commandMap: Map<string, { plugin: VsshPlugin; command: PluginCommand }> = new Map();
   private dependencyChecker: DependencyChecker;
+  private validatedConfigs: Map<string, any> = new Map();
   
   get context(): PluginContext {
     return this._context;
@@ -68,6 +69,19 @@ export class PluginRegistry {
         if (!this.plugins.has(dep)) {
           throw new Error(`Plugin ${name} depends on ${dep}, which is not loaded`);
         }
+      }
+    }
+    
+    // Validate plugin configuration if schema is provided
+    if (plugin.configSchema && this._context.config.plugins?.config?.[name]) {
+      try {
+        const validated = plugin.configSchema.parse(
+          this._context.config.plugins.config[name]
+        );
+        this.validatedConfigs.set(name, validated);
+      } catch (error: any) {
+        this._context.logger.error(`Invalid configuration for plugin ${name}: ${error.message}`);
+        throw new Error(`Plugin ${name} has invalid configuration: ${error.message}`);
       }
     }
     
@@ -196,6 +210,10 @@ export class PluginRegistry {
   
   getPlugin(name: string): VsshPlugin | undefined {
     return this.plugins.get(name);
+  }
+  
+  getPluginConfig(name: string): any {
+    return this.validatedConfigs.get(name) || this._context.config.plugins?.config?.[name];
   }
   
   isEnabled(name: string): boolean {

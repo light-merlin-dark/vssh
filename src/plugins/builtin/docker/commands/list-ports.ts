@@ -40,9 +40,9 @@ export async function listPortsCommand(
         if (container.ports) {
           console.log(`\n${container.name} (${container.id.substring(0, 12)})`);
           // Parse and format ports
-          const ports = container.ports.split(',').map(p => p.trim()).filter(p => p);
+          const ports = container.ports.split(',').map((p: string) => p.trim()).filter((p: string) => p);
           if (ports.length > 0) {
-            ports.forEach(port => {
+            ports.forEach((port: string) => {
               console.log(`  → ${port}`);
             });
           } else {

@@ -129,7 +129,23 @@ async function initializePlugins(config: Config) {
                 getPlugin: (name: string) => registry!.getPlugin(name)
               };
               
-              await command.handler(context, parsedArgs);
+              // Validate input if schema is provided
+              let validatedArgs = parsedArgs;
+              if (command.inputSchema) {
+                try {
+                  validatedArgs = command.inputSchema.parse(parsedArgs);
+                } catch (error: any) {
+                  return {
+                    isError: true,
+                    content: [{
+                      type: "text" as const,
+                      text: `Input validation error: ${error.message}`
+                    }]
+                  };
+                }
+              }
+              
+              await command.handler(context, validatedArgs);
               
               // Restore console
               console.log = originalLog;

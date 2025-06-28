@@ -4,8 +4,8 @@ import dockerPlugin from '../index';
 describe('Docker Plugin', () => {
   it('should have correct plugin metadata', () => {
     expect(dockerPlugin.name).toBe('docker');
-    expect(dockerPlugin.version).toBe('1.0.0');
-    expect(dockerPlugin.description).toBe('Docker container management commands');
+    expect(dockerPlugin.version).toBe('2.0.0');
+    expect(dockerPlugin.description).toBe('Docker container management commands with enhanced MCP support');
   });
   
   it('should export 6 commands', () => {

@@ -7,6 +7,59 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.7.0] - 2025-06-27
+
+### Added
+- **Enhanced MCP Server Architecture**: Major improvements to plugin system and MCP integration
+  - Plugins now define their own MCP tools directly for better modularity
+  - Automatic MCP tool registration from plugin definitions
+  - Improved handler resolution for both CLI and MCP contexts
+  - Resource handlers for plugins to provide MCP resources
+
+- **Docker Plugin v2.0.0**: Enhanced with direct MCP tool support
+  - All Docker commands now have corresponding MCP tools
+  - Added container resource handler for MCP resource queries
+  - Improved command descriptions and help text
+  - Better integration with vssh's proxy service
+
+- **Coolify Blueprint**: Comprehensive documentation for migrating Coolify functionality
+  - Created `docs/ch-blueprint.md` with complete API integration guide
+  - Documented all Coolify API endpoints with curl examples
+  - Provided implementation structure for standalone coolify-helper project
+  - Included end-to-end test script specifications
+
+### Enhanced
+- **Plugin Architecture**: Significant improvements to plugin system
+  - Added `mcpTools` property to plugin interface for direct MCP tool definitions
+  - Implemented automatic MCP tool mapping from plugin commands
+  - Added resource handler support for plugins
+  - Improved type safety with better TypeScript interfaces
+  - Added response utilities for consistent plugin output
+
+- **Test Infrastructure**: Improved testing with Bun for faster execution
+  - All tests now run with `bun run test` for improved speed
+  - Fixed Docker plugin test expectations (version 2.0.0)
+  - Fixed Grafana plugin test argument handling
+  - Verified file-editor plugin functionality with integration tests
+
+### Fixed
+- **Test Failures**: Resolved multiple test issues
+  - Docker plugin tests updated for version 2.0.0 and new description
+  - Grafana view-dashboard tests fixed for proper argument passing
+  - All core tests (51 tests) now passing successfully
+
+### Developer Experience
+- **Migration Utilities**: Added utilities to help migrate existing code
+  - Created migration helpers for updating plugin definitions
+  - Added response formatting utilities for consistent output
+  - Improved error handling in plugin loading
+
+### Documentation
+- **Updated Plugin Development**: Enhanced documentation for plugin creators
+  - Clear examples of MCP tool definitions within plugins
+  - Resource handler implementation examples
+  - Best practices for plugin architecture
+
 ## [1.6.1] - 2025-06-23
 
 ### Added

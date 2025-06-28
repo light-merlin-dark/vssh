@@ -250,7 +250,7 @@ describe('view-grafana-dashboard command', () => {
     
     const command = grafanaPlugin.commands.find((cmd: PluginCommand) => cmd.name === 'view-grafana-dashboard');
     const { stdout } = await captureOutput(async () => {
-      await command!.handler(context, { _: ['db metrics'] });
+      await command!.handler(context, { _: ['view-grafana-dashboard', 'db metrics'] });
     });
     
     // Check dashboard details
@@ -281,7 +281,7 @@ describe('view-grafana-dashboard command', () => {
     
     const command = grafanaPlugin.commands.find((cmd: PluginCommand) => cmd.name === 'view-grafana-dashboard');
     const { stdout } = await captureOutput(async () => {
-      await command!.handler(context, { _: ['metrics'] });
+      await command!.handler(context, { _: ['view-grafana-dashboard', 'metrics'] });
     });
     
     expect(stdout).toContain('Multiple dashboards found');
@@ -299,7 +299,7 @@ describe('view-grafana-dashboard command', () => {
     
     const command = grafanaPlugin.commands.find((cmd: PluginCommand) => cmd.name === 'view-grafana-dashboard');
     const { stdout } = await captureOutput(async () => {
-      await command!.handler(context, { _: ['nonexistent'] });
+      await command!.handler(context, { _: ['view-grafana-dashboard', 'nonexistent'] });
     });
     
     expect(stdout).toContain('No dashboards found matching "nonexistent"');

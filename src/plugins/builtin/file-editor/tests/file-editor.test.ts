@@ -183,18 +183,19 @@ describe('FileEditorService', () => {
     it('should edit remote files via SSH', async () => {
       const originalContent = 'remote content';
       
-      vi.spyOn(mockContext.proxyService, 'executeCommand').mockResolvedValueOnce({ 
-        output: originalContent,
-        duration: 100,
-        timestamp: new Date().toISOString(),
-        command: `cat "/remote/file.txt"`
-      });
-      vi.spyOn(mockContext.proxyService, 'executeCommand').mockResolvedValueOnce({ 
-        output: '',
-        duration: 100,
-        timestamp: new Date().toISOString(),
-        command: `cat > "/remote/file.txt"`
-      });
+      mockContext.proxyService.executeCommand = vi.fn()
+        .mockResolvedValueOnce({ 
+          output: originalContent,
+          duration: 100,
+          timestamp: new Date().toISOString(),
+          command: `cat "/remote/file.txt"`
+        })
+        .mockResolvedValueOnce({ 
+          output: '',
+          duration: 100,
+          timestamp: new Date().toISOString(),
+          command: `cat > "/remote/file.txt"`
+        });
 
       await service.editFile({
         path: '/remote/file.txt',

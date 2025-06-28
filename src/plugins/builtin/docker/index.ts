@@ -1,16 +1,26 @@
 import { VsshPlugin } from '../../types';
-import { listContainersCommand } from './commands/list-containers';
+import { z } from 'zod';
+import { listContainersCommand, listContainersMcpHandler } from './commands/list-containers';
 import { getContainerCommand } from './commands/get-container';
 import { showLogsCommand } from './commands/show-logs';
 import { listPortsCommand } from './commands/list-ports';
 import { listNetworksCommand } from './commands/list-networks';
 import { showInfoCommand } from './commands/show-info';
+import { ListContainersArgsSchema, GetContainerArgsSchema, ShowLogsArgsSchema } from './types';
+
+// Plugin configuration schema
+const DockerConfigSchema = z.object({
+  defaultRegistry: z.string().optional(),
+  cacheTimeout: z.number().default(10000),
+  enableMetrics: z.boolean().default(false)
+}).optional();
 
 const dockerPlugin: VsshPlugin = {
   name: 'docker',
-  version: '1.0.0',
-  description: 'Docker container management commands',
+  version: '2.0.0',
+  description: 'Docker container management commands with enhanced MCP support',
   author: 'vssh',
+  configSchema: DockerConfigSchema,
   
   runtimeDependencies: [
     {
@@ -38,13 +48,16 @@ const dockerPlugin: VsshPlugin = {
       name: 'list-docker-containers',
       aliases: ['ldc'],
       description: 'List all Docker containers',
-      usage: 'vssh list-docker-containers',
+      usage: 'vssh list-docker-containers [--all] [--limit <n>]',
       examples: [
         'vssh list-docker-containers',
-        'vssh ldc'
+        'vssh ldc',
+        'vssh ldc --all',
+        'vssh ldc --limit 10'
       ],
       handler: listContainersCommand,
-      mcpName: 'list_docker_containers'
+      mcpName: 'list_docker_containers',
+      inputSchema: ListContainersArgsSchema
     },
     {
       name: 'get-docker-container',
@@ -57,7 +70,8 @@ const dockerPlugin: VsshPlugin = {
         'vssh gdc --returnName web'
       ],
       handler: getContainerCommand,
-      mcpName: 'get_docker_container'
+      mcpName: 'get_docker_container',
+      inputSchema: GetContainerArgsSchema
     },
     {
       name: 'show-docker-logs',
@@ -70,7 +84,8 @@ const dockerPlugin: VsshPlugin = {
         'vssh sdl myapp --verbose'
       ],
       handler: showLogsCommand,
-      mcpName: 'show_docker_logs'
+      mcpName: 'show_docker_logs',
+      inputSchema: ShowLogsArgsSchema
     },
     {
       name: 'list-docker-ports',
