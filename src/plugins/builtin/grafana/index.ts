@@ -7,6 +7,18 @@ const grafanaPlugin: VsshPlugin = {
   version: '1.0.0',
   description: 'Grafana dashboard discovery and viewing',
   
+  helpSummary: {
+    shortSummary: 'Grafana dashboard management - lgd (list dashboards), vgd (view dashboard)',
+    longSummary: 'Discover and view Grafana dashboards with smart search. List all available dashboards (lgd) or view specific dashboard details by name, UID, or partial match (vgd).',
+    category: 'Monitoring',
+    keyCommands: ['lgd', 'vgd'],
+    examples: [
+      'vssh lgd  # List all dashboards',
+      'vssh vgd "server metrics"  # View dashboard by name',
+      'vssh vgd libsql  # View LibSQL dashboard'
+    ]
+  },
+  
   mcpContext: {
     section: 'GRAFANA COMMANDS',
     commands: [

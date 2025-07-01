@@ -31,6 +31,18 @@ const dockerPlugin: VsshPlugin = {
     }
   ],
   
+  helpSummary: {
+    shortSummary: 'Docker container management - ldc (list), gdc (get), sdl (logs), ldp (ports), ldn (networks), sdi (info)',
+    longSummary: 'Complete Docker container management suite with 6 core commands. List containers (ldc), find specific containers (gdc), show logs (sdl), view port mappings (ldp), list networks (ldn), and display system info (sdi). Supports both CLI and MCP integration.',
+    category: 'Infrastructure',
+    keyCommands: ['ldc', 'gdc', 'sdl', 'ldp', 'ldn', 'sdi'],
+    examples: [
+      'vssh ldc  # List all containers',
+      'vssh gdc myapp  # Find container by name',
+      'vssh sdl web --tail 50  # Show logs'
+    ]
+  },
+  
   mcpContext: {
     section: 'DOCKER COMMANDS',
     commands: [

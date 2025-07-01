@@ -9,6 +9,17 @@ const coolifyPlugin: VsshPlugin = {
   author: 'vssh',
   dependencies: ['docker'], // Requires docker plugin
   
+  helpSummary: {
+    shortSummary: 'Coolify proxy management - gcp (get proxy config), lcd (list dynamic configs)',
+    longSummary: 'Specialized commands for Coolify self-hosting platform. Get Traefik proxy configuration (gcp) and list dynamic routing configurations (lcd). Requires docker plugin.',
+    category: 'Infrastructure',
+    keyCommands: ['gcp', 'lcd'],
+    examples: [
+      'vssh gcp  # Get proxy configuration',
+      'vssh lcd  # List dynamic configs'
+    ]
+  },
+  
   mcpContext: {
     section: 'COOLIFY COMMANDS',
     commands: [

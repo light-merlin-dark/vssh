@@ -12,6 +12,18 @@ const proxyPlugin: VsshPlugin = {
   description: 'Core proxy functionality for remote command execution',
   author: 'VSSH Core',
 
+  helpSummary: {
+    shortSummary: 'Core proxy commands - proxy/run/exec (execute commands), lm (local mode toggle)',
+    longSummary: 'Essential remote command execution functionality. Execute commands on remote server (proxy/run/exec) and manage local/remote execution mode (lm). Core functionality for all vssh operations.',
+    category: 'Core',
+    keyCommands: ['proxy', 'run', 'exec', 'lm'],
+    examples: [
+      'vssh proxy "ls -la"  # Execute command remotely',
+      'vssh run "docker ps"  # Same as proxy',
+      'vssh lm on  # Enable local mode'
+    ]
+  },
+
   commands: [
     {
       name: 'proxy',

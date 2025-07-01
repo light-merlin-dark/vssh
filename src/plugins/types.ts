@@ -90,6 +90,14 @@ export interface McpContextContribution {
   commands: McpCommandExample[];
 }
 
+export interface PluginHelpSummary {
+  shortSummary: string;
+  longSummary: string;
+  category?: string;
+  keyCommands?: string[];
+  examples?: string[];
+}
+
 export interface VsshPlugin {
   name: string;
   version: string;
@@ -107,6 +115,7 @@ export interface VsshPlugin {
   commandGuards?: CommandGuardExtension[];
   mcpContext?: McpContextContribution;
   configSchema?: z.ZodSchema<any>;
+  helpSummary?: PluginHelpSummary;
 }
 
 export interface PluginMetadata {

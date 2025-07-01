@@ -10,7 +10,7 @@ import { handleInstallCommand } from './cli/install';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 
-function showHelp() {
+function showHelp(registry?: PluginRegistry) {
   console.log(`
 VSSH - AI-Friendly SSH Command Proxy with Safety Guards
 
@@ -26,31 +26,59 @@ SYNTAX:
   vssh --help                 # Show this help message
   vssh --local <command>      # Execute command locally instead of on remote server
 
-FEATURES FOR AI ASSISTANTS:
-  • Clear command syntax that works with AI tool permissions
-  • Automatic blocking of dangerous commands (rm -rf /, dd to disk, etc.)
-  • All commands logged for audit trail
-  • Simple setup with saved configuration
-
 BASIC USAGE:
   vssh ls                     # Simple command
   vssh ls -la /var/log        # Command with arguments  
   vssh "docker ps -a"         # Full command in quotes (AI-friendly)
   vssh echo "hello world"     # Double quotes OK for arguments
 
-DOCKER PLUGIN COMMANDS:
+PLUGIN MANAGEMENT:
   vssh plugins list           # List available plugins
-  vssh plugins enable docker  # Enable a plugin
-  vssh plugins disable docker # Disable a plugin
-  vssh plugins info docker    # Show plugin details
+  vssh plugins enable <name>  # Enable a plugin
+  vssh plugins disable <name> # Disable a plugin
+  vssh plugins info <name>    # Show plugin details`);
 
-DOCKER PLUGIN COMMANDS (when enabled):
-  vssh ldc                    # List docker containers
-  vssh gdc <name>             # Get docker container
-  vssh sdl <name>             # Show docker logs
-  vssh ldp                    # List docker ports
-  vssh ldn                    # List docker networks
-  vssh sdi                    # Show docker info
+  // Dynamic plugin help section
+  if (registry) {
+    const enabledPlugins = registry.getEnabledPlugins();
+    const categorizedPlugins = new Map<string, typeof enabledPlugins>();
+    
+    // Group plugins by category
+    enabledPlugins.forEach(plugin => {
+      const category = plugin.helpSummary?.category || 'Other';
+      if (!categorizedPlugins.has(category)) {
+        categorizedPlugins.set(category, []);
+      }
+      categorizedPlugins.get(category)!.push(plugin);
+    });
+
+    // Sort categories for consistent display
+    const sortedCategories = Array.from(categorizedPlugins.keys()).sort();
+    
+    if (sortedCategories.length > 0) {
+      console.log(`
+
+AVAILABLE COMMANDS BY CATEGORY:`);
+      
+      sortedCategories.forEach(category => {
+        console.log(`\n  ${category}:`);
+        const plugins = categorizedPlugins.get(category)!;
+        
+        plugins.forEach(plugin => {
+          if (plugin.helpSummary) {
+            console.log(`    ${plugin.helpSummary.shortSummary}`);
+            if (plugin.helpSummary.examples && plugin.helpSummary.examples.length > 0) {
+              plugin.helpSummary.examples.slice(0, 2).forEach(example => {
+                console.log(`      ${example}`);
+              });
+            }
+          }
+        });
+      });
+    }
+  }
+
+  console.log(`
 
 SYSTEM COMMANDS:
   vssh df -h                  # Disk usage
@@ -109,30 +137,7 @@ async function main() {
     args[0] === 'install' ||
     args[0] === 'plugins';
 
-  // Detect if Claude is calling the CLI directly
-  if (isCalledByClaude() && !skipClaudeMessage) {
-    console.log(`
-🤖 Hello Claude! It looks like you're calling vssh directly.
-
-For better integration, you should use the MCP tool instead:
-• Use: mcp__vssh__run_command
-• Example: mcp__vssh__run_command({ command: "ls -la" })
-
-The MCP tools provide:
-✅ Better error handling and structured responses
-✅ Automatic command safety checks
-✅ Proper integration with your capabilities
-
-Available MCP tools:
-• mcp__vssh__run_command - Execute SSH commands
-• mcp__vssh__list_docker_containers - List Docker containers
-• mcp__vssh__get_docker_container - Get container details
-• mcp__vssh__show_docker_logs - Show container logs
-• And more...
-
-Continuing with direct CLI execution anyway...
-`);
-  }
+  // Claude detection message removed - direct CLI usage is preferred
 
   // Check for --local flag
   const localIndex = args.findIndex(arg => arg === '--local' || arg === '-l');
@@ -142,11 +147,7 @@ Continuing with direct CLI execution anyway...
     args.splice(localIndex, 1);
   }
 
-  // Handle help
-  if (args.length === 0 || args[0] === '--help' || args[0] === '-h') {
-    showHelp();
-    process.exit(0);
-  }
+  const isHelpCommand = args.length === 0 || args[0] === '--help' || args[0] === '-h' || args[0] === 'help';
 
   // Handle setup
   if (args[0] === '--setup') {
@@ -163,6 +164,11 @@ Continuing with direct CLI execution anyway...
   // Load config - run setup if not found
   const config = loadConfig();
   if (!config) {
+    if (isHelpCommand) {
+      // Show basic help if no config available
+      showHelp();
+      process.exit(0);
+    }
     console.log('No SSH configuration found.');
     console.log('\nPlease run: vssh --setup\n');
     process.exit(1);
@@ -220,6 +226,12 @@ Continuing with direct CLI execution anyway...
     } catch (error: any) {
       logger.error(`Failed to load plugin ${plugin.name}: ${error.message}`);
     }
+  }
+  
+  // Handle help with loaded plugins
+  if (isHelpCommand) {
+    showHelp(registry);
+    process.exit(0);
   }
   
   // Handle plugin management commands

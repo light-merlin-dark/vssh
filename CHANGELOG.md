@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.0] - 2025-07-01
+
+### Added
+- **Dynamic Help System**: Complete redesign of help text for optimal AI and user experience
+  - Plugin-based help summaries with short and long descriptions
+  - Categorized command display (Core, Infrastructure, Monitoring, File Management)
+  - Dynamic help generation from enabled plugins only
+  - Comprehensive examples and key commands for each plugin
+  - Template-based help system for consistent documentation
+
+### Removed
+- **Claude Detection Message**: Removed the greeting message when Claude calls vssh directly
+  - Streamlined experience for direct CLI usage
+  - Cleaner output for AI assistants and human users
+
+### Enhanced
+- **Plugin Interface**: Extended with helpSummary support
+  - Added PluginHelpSummary interface with shortSummary, longSummary, category, keyCommands, and examples
+  - All builtin plugins now include comprehensive help summaries
+  - Help system automatically categorizes and displays plugin commands
+
 ## [1.7.0] - 2025-06-27
 
 ### Added

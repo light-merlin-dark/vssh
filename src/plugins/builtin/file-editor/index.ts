@@ -7,6 +7,18 @@ const fileEditorPlugin: VsshPlugin = {
   description: 'Advanced file editing capabilities for vssh',
   author: 'vssh',
   
+  helpSummary: {
+    shortSummary: 'Advanced file editing - ef (edit-file) with search/replace, regex, insert, delete operations',
+    longSummary: 'Powerful file editing tool supporting multiple operations: simple search/replace, regex patterns, line insertion, deletion, and batch edits via JSON. Includes backup and dry-run modes for safety.',
+    category: 'File Management',
+    keyCommands: ['ef', 'edit-file'],
+    examples: [
+      'vssh ef config.yml --search "localhost" --replace "example.com"',
+      'vssh ef script.sh --regex "console\\.log" --with "// console.log" --flags "g"',
+      'vssh ef app.conf --insert-at 0 --content "# Config file"'
+    ]
+  },
+  
   mcpContext: {
     section: 'FILE EDITOR COMMANDS',
     commands: [
