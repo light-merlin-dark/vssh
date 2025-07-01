@@ -11,6 +11,7 @@
     "build": "tsc",
     "dev": "ts-node src/index.ts",
     "test": "vitest run tests/unit tests/integration",
+    "test:silent": "vitest run tests/unit tests/integration --reporter=basic 2>/dev/null",
     "test:coverage": "vitest run --coverage",
     "test:unit": "vitest run tests/unit",
     "test:integration": "vitest run tests/integration",
