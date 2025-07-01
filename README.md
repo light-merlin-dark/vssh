@@ -18,6 +18,7 @@ Extend vssh with specialized functionality:
 - **Docker Plugin**: Container management made simple (`ldc`, `sdl`, `sdi`)
 - **Coolify Plugin**: Platform-specific operations (`gcp`, `lcd`)
 - **Grafana Plugin**: Dashboard discovery and viewing with encrypted credential storage
+- **File Editor Plugin**: Advanced file editing operations (`ef`) with search/replace, regex, and more
 - **Custom Plugins**: Build your own for your specific needs
 
 ### AI-First Design
@@ -121,8 +122,8 @@ This interactive setup will:
 
 #### Core Commands
 ```bash
-# View help and examples
-vssh --help
+# View comprehensive categorized help
+vssh --help                   # Shows all available commands by category
 
 # Run simple commands
 vssh ls -la
@@ -311,7 +312,7 @@ Example dependency error:
 4. **Predictable Permissions**: Simple patterns like `Bash(vssh:*)` just work
 5. **Clear Feedback**: Structured output perfect for AI interpretation
 6. **Safety Net**: Multi-layer protection against dangerous commands
-7. **Claude Detection**: Automatically detects when Claude is using the CLI directly and provides helpful guidance to use MCP tools instead
+7. **Dynamic Help**: Context-aware help system that shows exactly what's available
 
 ### Common AI Tasks Made Simple
 
@@ -340,33 +341,40 @@ vssh local-mode on                # Enable local execution
 vssh --local docker ps            # One-off local command
 ```
 
-### Smart Claude Detection
+### Dynamic Help System
 
-vssh automatically detects when Claude (Anthropic's AI assistant) is calling the CLI directly instead of using the MCP tools. This helps guide Claude to use the proper integration method for better performance and reliability.
+vssh features a comprehensive, plugin-aware help system that automatically shows available commands based on enabled plugins:
 
-**How it works:**
-- Detects Claude-specific environment variables (`CLAUDECODE=1`)
-- Checks for non-TTY execution context
-- Displays a friendly reminder about available MCP tools
-- Still executes the command for compatibility
-
-**What Claude sees:**
-```
-🤖 Hello Claude! It looks like you're calling vssh directly.
-
-For better integration, you should use the MCP tool instead:
-• Use: mcp__vssh__run_command
-• Example: mcp__vssh__run_command({ command: "ls -la" })
-
-Available MCP tools:
-• mcp__vssh__run_command - Execute SSH commands
-• mcp__vssh__list_docker_containers - List Docker containers
-• And more...
-
-Continuing with direct CLI execution anyway...
+```bash
+vssh --help  # or vssh, vssh help, vssh -h
 ```
 
-This ensures that AI assistants always get the best possible experience with vssh, whether they're using the CLI or MCP tools.
+**Key features:**
+- **Categorized Display**: Commands organized by category (Core, Infrastructure, Monitoring, File Management)
+- **Plugin-Aware**: Only shows commands from enabled plugins
+- **Rich Examples**: Each plugin provides key commands and usage examples
+- **AI-Optimized**: Immediate visibility of all available commands for quick agent onboarding
+
+**Example output:**
+```
+AVAILABLE COMMANDS BY CATEGORY:
+
+  Core:
+    Core proxy commands - proxy/run/exec (execute commands), lm (local mode toggle)
+      vssh proxy "ls -la"  # Execute command remotely
+      vssh run "docker ps"  # Same as proxy
+
+  Infrastructure:
+    Docker container management - ldc (list), gdc (get), sdl (logs), ldp (ports), ldn (networks), sdi (info)
+      vssh ldc  # List all containers
+      vssh gdc myapp  # Find container by name
+
+  File Management:
+    Advanced file editing - ef (edit-file) with search/replace, regex, insert, delete operations
+      vssh ef config.yml --search "localhost" --replace "example.com"
+```
+
+This ensures that both AI assistants and human users can quickly discover and understand all available functionality.
 
 ## ⚙️ Configuration
 
