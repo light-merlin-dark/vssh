@@ -7,7 +7,7 @@
   ╚═══╝  ╚══════╝╚══════╝╚═╝  ╚═╝
 
 MCP-native SSH proxy for AI agents
-CLI & MCP Server • Plugin system • Safety guards
+CLI & MCP Server • Plugin system • AI safety guards
 ```
 
 ## Why?
