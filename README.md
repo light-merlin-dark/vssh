@@ -7,13 +7,13 @@
   ╚═══╝  ╚══════╝╚══════╝╚═╝  ╚═╝
 
 MCP-native SSH proxy for AI agents
-4 plugins (Docker, Coolify, Grafana, File Editor) • Safety guards • CLI & MCP Server
+CLI & MCP Server • Plugin system • Safety guards
 ```
 
 ## Why?
 
 - Execute server commands without SSH syntax complexity
-- 4 built-in plugins: Docker, Coolify, Grafana, File Editor
+- Plugin system extends functionality (Docker, Coolify, Grafana, File Editor)
 - Safety guards prevent destructive operations (rm -rf /, dd, docker prune -af)
 - No quote escaping issues in AI permission systems
 - Audit trails logged to `~/.vssh/data/logs/`
