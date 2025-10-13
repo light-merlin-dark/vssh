@@ -1,6 +1,14 @@
-# VSSH
+```
+██╗   ██╗███████╗███████╗██╗  ██╗
+██║   ██║██╔════╝██╔════╝██║  ██║
+██║   ██║███████╗███████╗███████║
+╚██╗ ██╔╝╚════██║╚════██║██╔══██║
+ ╚████╔╝ ███████║███████║██║  ██║
+  ╚═══╝  ╚══════╝╚══════╝╚═╝  ╚═╝
 
-MCP-native SSH proxy for AI agents. 4 plugins (Docker, Coolify, Grafana, File Editor), safety guards. CLI & MCP Server.
+MCP-native SSH proxy for AI agents
+4 plugins (Docker, Coolify, Grafana, File Editor) • Safety guards • CLI & MCP Server
+```
 
 ## Why?
 
