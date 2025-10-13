@@ -1,33 +1,17 @@
 # VSSH
 
-**The Model Context Protocol (MCP) enabled SSH proxy for AI agents.**
+MCP-native SSH proxy for AI agents. 4 plugins (Docker, Coolify, Grafana, File Editor), safety guards. CLI & MCP Server.
 
-Built from the ground up for seamless integration with Claude Code, Claude Desktop, and other AI tools that support MCP. vssh transforms how AI agents manage remote servers by providing a safe, intuitive, and extensible command interface.
+## Why?
 
-## 🚀 Why VSSH?
+- Execute server commands without SSH syntax complexity
+- 4 built-in plugins: Docker, Coolify, Grafana, File Editor
+- Safety guards prevent destructive operations (rm -rf /, dd, docker prune -af)
+- No quote escaping issues in AI permission systems
+- Audit trails logged to `~/.vssh/data/logs/`
+- MCP-native with tools exposed automatically
 
-### Native MCP Integration
-vssh is a first-class MCP tool, meaning AI agents can:
-- Execute server commands naturally without complex SSH syntax
-- Access powerful plugin-based commands for Docker, Coolify, and more
-- Benefit from built-in safety guards that prevent destructive operations
-- Work within permission systems without quote escaping headaches
-
-### Plugin Architecture
-Extend vssh with specialized functionality:
-- **Docker Plugin**: Container management made simple (`ldc`, `sdl`, `sdi`)
-- **Coolify Plugin**: Platform-specific operations (`gcp`, `lcd`)
-- **Grafana Plugin**: Dashboard discovery and viewing with encrypted credential storage
-- **File Editor Plugin**: Advanced file editing operations (`ef`) with search/replace, regex, and more
-- **Custom Plugins**: Build your own for your specific needs
-
-### AI-First Design
-- Commands that "just work" - no SSH flag complexity
-- Intelligent command parsing that understands AI patterns
-- Clear, structured output perfect for AI interpretation
-- Comprehensive audit trails for accountability
-
-## 🔌 Model Context Protocol (MCP) Setup
+## Model Context Protocol (MCP) Setup
 
 ### Quick Start with Claude Code
 ```bash
@@ -52,16 +36,16 @@ Once configured, AI agents gain access to:
 - `edit_file` - Advanced file editing operations (File Editor plugin)
 - And many more plugin-based tools!
 
-## ✨ Key Features
+## Key Features
 
-### 🎯 Unified Command Execution
+### Unified Command Execution
 All commands now execute through a centralized proxy system:
 - Consistent logging and timing for all operations
 - Plugin commands automatically use proxy pipeline
 - Toggle between local and remote execution modes
 - Perfect for development, testing, and production use
 
-### 🤖 AI-Optimized Interface
+### AI-Optimized Interface
 ```bash
 # AI agents can use natural commands without complex quoting
 vssh docker ps
@@ -77,7 +61,7 @@ vssh "ls -la /var/log"      # Perfect for AI permission patterns
 # ✅ vssh docker exec container cat /etc/config
 ```
 
-### 🛡️ Built-in Safety Guard
+### Built-in Safety Guard
 Protects against accidentally destructive commands:
 ```bash
 vssh rm -rf /              # ❌ Blocked!
@@ -85,10 +69,10 @@ vssh dd if=/dev/zero of=/dev/sda  # ❌ Blocked!
 vssh docker system prune -af --volumes  # ❌ Blocked!
 ```
 
-### 📝 Complete Audit Trail
+### Complete Audit Trail
 Every command and output is logged to `~/.vssh/data/logs/` for accountability and debugging.
 
-## 📦 Installation
+## Installation
 
 ```bash
 # Install globally via npm
@@ -103,7 +87,7 @@ vssh --setup
 - SSH key-based authentication
 - Target server with SSH access
 
-## 🚀 Quick Start
+## Quick Start
 
 ### First-Time Setup
 ```bash
@@ -166,9 +150,9 @@ vssh plugins enable docker    # Enable a plugin
 vssh plugins info docker      # Show plugin details
 ```
 
-## 🧩 Plugin System
+## Plugin System
 
-vssh features a powerful plugin architecture that extends functionality while maintaining safety and MCP compatibility.
+vssh features a plugin architecture that extends functionality while maintaining safety and MCP compatibility.
 
 ### Built-in Plugins
 
@@ -192,7 +176,7 @@ Grafana dashboard management with auto-discovery:
 - `view-grafana-dashboard` (vgd) - View dashboard details by name/search
 - Auto-discovers Grafana containers and credentials on first use
 - Securely stores credentials with AES-256-GCM encryption
-- No manual configuration required - just run and it works!
+- No manual configuration required
 
 #### File Editor Plugin
 Advanced file editing capabilities:
@@ -302,19 +286,19 @@ Example dependency error:
 • Docker is not installed on the server. Please install Docker from https://docker.com
 ```
 
-## 🎯 Perfect for AI Workflows
+## AI Workflows
 
-### Why AI Assistants Love vssh
+### Key Benefits
 
-1. **MCP Native**: First-class support for Model Context Protocol
-2. **Plugin Power**: Specialized commands for common tasks
-3. **No Quote Wrestling**: Commands work naturally without complex escaping
-4. **Predictable Permissions**: Simple patterns like `Bash(vssh:*)` just work
-5. **Clear Feedback**: Structured output perfect for AI interpretation
-6. **Safety Net**: Multi-layer protection against dangerous commands
-7. **Dynamic Help**: Context-aware help system that shows exactly what's available
+- MCP-native support with automatic tool exposure
+- Specialized plugin commands for Docker, Coolify, Grafana, file editing
+- No quote escaping complexity in permission systems
+- Simple patterns like `Bash(vssh:*)` work consistently
+- Structured output for AI interpretation
+- Multi-layer protection against dangerous commands
+- Context-aware help system shows available commands
 
-### Common AI Tasks Made Simple
+### Common AI Tasks
 
 ```bash
 # Docker Management (via plugin)
@@ -376,7 +360,7 @@ AVAILABLE COMMANDS BY CATEGORY:
 
 This ensures that both AI assistants and human users can quickly discover and understand all available functionality.
 
-## ⚙️ Configuration
+## Configuration
 
 Configuration is stored in `~/.vssh/config.json`:
 
@@ -403,7 +387,7 @@ You can also use environment variables:
 - `VSSH_USER` - SSH username (default: root)
 - `VSSH_KEY_PATH` - Path to SSH key
 
-## 🛡️ Safety Features
+## Safety Features
 
 Multi-layer protection system:
 
@@ -421,7 +405,7 @@ Multi-layer protection system:
 
 All blocked commands are logged to `~/.vssh/data/logs/blocked_commands.log`.
 
-## 📁 Data Storage
+## Data Storage
 
 vssh stores all data in your home directory:
 ```
@@ -435,7 +419,7 @@ vssh stores all data in your home directory:
         └── blocked_commands.log  # Blocked attempts
 ```
 
-## 🔧 Development
+## Development
 
 ```bash
 # Clone the repository
@@ -455,7 +439,7 @@ npm run build
 npm test
 ```
 
-### 🧪 Testing Philosophy
+### Testing Philosophy
 
 vssh uses a **plugin-centric testing approach** that promotes modularity and independence:
 
@@ -489,10 +473,6 @@ For detailed testing documentation, see [docs/testing.md](docs/testing.md).
 
 MIT License - see [LICENSE](LICENSE) file for details.
 
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
 ---
 
-Built with ❤️ by [@EnchantedRobot](https://twitter.com/EnchantedRobot)
+Built by [@EnchantedRobot](https://twitter.com/EnchantedRobot)

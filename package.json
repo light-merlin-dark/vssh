@@ -1,7 +1,7 @@
 {
   "name": "@light-merlin-dark/vssh",
-  "version": "1.6.4",
-  "description": "Model Context Protocol (MCP) enabled SSH proxy with plugin architecture for AI agents",
+  "version": "1.6.6",
+  "description": "MCP-native SSH proxy for AI agents. 4 plugins (Docker, Coolify, Grafana), safety guards. CLI & MCP Server.",
   "main": "dist/src/index.js",
   "bin": {
     "vssh": "dist/src/index.js",

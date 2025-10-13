@@ -19,7 +19,6 @@ logs/
 
 # Environment files
 .env
-.env.local
 .env.production
 
 # Developer files
@@ -41,7 +40,6 @@ Thumbs.db
 # Docs
 docs/
 
-
 # Test coverage
 coverage/
 .nyc_output/
@@ -49,5 +47,15 @@ coverage/
 # Temporary files
 tmp/
 temp/
-*.tmp
 *.temp
+_blueprints
+*.test
+test.dry
+debug.test
+options.test
+dryrun.final
+final.dryrun.test
+blueprints
+chat.md
+.blueprints
+.chat.md
