@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **File Transfer Plugin**: Native SFTP file transfer with automatic directory compression
+  - `upload` command (aliases: push, put) - Upload files/directories to server
+  - `download` command (aliases: pull, get) - Download files/directories from server
+  - Automatic tar.gz compression for directories (bidirectional)
+  - Progress indicators with file size reporting
+  - Auto-cleanup of temporary archives
+  - MCP tools: `upload_file` and `download_file` for AI agents
+  - Enabled by default for seamless file operations
+  - Examples:
+    ```bash
+    vssh upload ./config.yml /etc/app/config.yml    # Upload single file
+    vssh upload ./my-folder /var/www/               # Auto-zips directory
+    vssh download /etc/app/config.yml ./config.yml  # Download single file
+    vssh download /var/www/myapp ./                 # Auto-zips on server
+    ```
+
+### Changed
+- **Test Infrastructure**: Migrated from Vitest to Bun's built-in test runner
+  - Significantly faster test execution with native Bun test runner
+  - Removed all Vitest configuration files
+  - Streamlined test setup with ASCII banner support
+  - All existing tests converted to Bun test format
+  - Maintained plugin-centric testing architecture
+
 ## [1.8.0] - 2025-07-01
 
 ### Added

@@ -55,7 +55,8 @@ debug.test
 options.test
 dryrun.final
 final.dryrun.test
-blueprints
-chat.md
+
+# Meta
 .blueprints
-.chat.md
+CLAUDE.md
+@meta

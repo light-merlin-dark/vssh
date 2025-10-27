@@ -1,19 +1,7 @@
-import { vi } from 'vitest';
-import { homedir } from 'os';
 import { join } from 'path';
 
 // Set NODE_ENV to test to suppress logging
 process.env.NODE_ENV = 'test';
-
-// Mock the config path to use a test directory
-vi.mock('../src/config', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('../src/config')>();
-  return {
-    ...actual,
-    CONFIG_PATH: join(__dirname, 'fixtures', 'test-config.json'),
-    DATA_DIR: join(__dirname, 'fixtures', 'data')
-  };
-});
 
 // Global test utilities
 global.testHelpers = {

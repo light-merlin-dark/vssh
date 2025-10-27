@@ -21,5 +21,5 @@
     "baseUrl": "."
   },
   "include": ["src/**/*", "tests/**/*"],
-  "exclude": ["node_modules", "dist", "tests/**/*.test.ts", "tests/**/*.spec.ts"]
+  "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts", "tests/setup.ts"]
 }

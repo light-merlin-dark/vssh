@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, mock, spyOn } from 'bun:test';
 import { DependencyChecker } from '../../../src/services/dependency-checker';
 import { SSHService } from '../../../src/services/ssh';
 import { ProxyService } from '../../../src/services/proxy-service';
@@ -11,11 +11,11 @@ describe('DependencyChecker', () => {
   
   beforeEach(() => {
     mockSSH = {
-      executeCommand: vi.fn()
+      executeCommand: mock()
     } as any;
     
     mockProxy = {
-      executeCommand: vi.fn()
+      executeCommand: mock()
     } as any;
   });
   

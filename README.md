@@ -13,7 +13,8 @@ CLI & MCP Server • Plugin system • AI safety guards
 ## Why?
 
 - Execute server commands without SSH syntax complexity
-- Plugin system extends functionality (Docker, Coolify, Grafana, File Editor)
+- Plugin system extends functionality (File Transfer, Docker, Coolify, Grafana, File Editor)
+- Native file transfers with automatic directory compression (upload/download)
 - Safety guards prevent destructive operations (rm -rf /, dd, docker prune -af)
 - No quote escaping issues in AI permission systems
 - Audit trails logged to `~/.vssh/data/logs/`
@@ -35,6 +36,8 @@ Once configured, AI agents gain access to:
 - `run_command` - Execute any SSH command with safety checks
 - `get_local_mode` - Check if commands execute locally or remotely
 - `set_local_mode` - Toggle between local and remote execution
+- `upload_file` - Upload files/directories with auto-zip (File Transfer plugin)
+- `download_file` - Download files/directories with auto-zip (File Transfer plugin)
 - `list_docker_containers` - List all containers (Docker plugin)
 - `show_docker_logs` - View container logs (Docker plugin)
 - `show_docker_info` - System information dashboard (Docker plugin)
@@ -107,7 +110,7 @@ This interactive setup will:
 2. Ask you to select or specify an SSH key
 3. Configure your target server (hostname/IP)
 4. Save configuration to `~/.vssh/config.json`
-5. Enable default plugins (Docker and Coolify)
+5. Enable default plugins (File Transfer, Docker, and Coolify)
 6. Generate encryption key for secure credential storage
 
 ### Basic Usage
@@ -130,6 +133,12 @@ vssh 'ps aux | grep node'
 
 #### Plugin Commands
 ```bash
+# File transfer plugin commands (enabled by default)
+vssh upload ./config.yml /etc/app/config.yml      # Upload single file
+vssh push ./my-folder /var/www/                   # Upload directory (auto-zips)
+vssh download /etc/app/config.yml ./config.yml    # Download single file
+vssh pull /var/www/myapp ./                       # Download directory (auto-zips)
+
 # Docker plugin commands (short aliases)
 vssh ldc                      # List docker containers
 vssh gdc myapp                # Get docker container
@@ -163,6 +172,19 @@ vssh plugins info docker      # Show plugin details
 vssh features a plugin architecture that extends functionality while maintaining safety and MCP compatibility.
 
 ### Built-in Plugins
+
+#### File Transfer Plugin
+Native SFTP file transfers with intelligent directory handling:
+- `upload` (push, put) - Upload files or directories to server
+- `download` (pull, get) - Download files or directories from server
+- **Automatic directory compression**:
+  - Detects directories automatically
+  - Creates tar.gz archives on-the-fly
+  - Extracts after transfer
+  - Auto-cleanup of temporary archives
+- Progress indicators and file size reporting
+- Works seamlessly with both single files and entire directory trees
+- Perfect for deploying code, backing up data, or syncing configurations
 
 #### Docker Plugin
 Comprehensive Docker management commands:
@@ -435,44 +457,45 @@ git clone https://github.com/light-merlin-dark/vssh.git
 cd vssh
 
 # Install dependencies
-npm install
+bun install
 
 # Run in development mode
-npm run dev
+bun run dev
 
 # Build for production
-npm run build
+bun run build
 
 # Run tests
-npm test
+bun test
 ```
 
 ### Testing Philosophy
 
-vssh uses a **plugin-centric testing approach** that promotes modularity and independence:
+vssh uses **Bun's native test runner** with a **plugin-centric testing approach** that promotes modularity and independence:
 
 - **Core Tests** (`/tests`): Validate the framework, plugin system, and core utilities only
 - **Plugin Tests** (`/src/plugins/*/tests`): Each plugin manages its own test suite
+- **Bun Test Runner**: Significantly faster than traditional test frameworks
 - **No Watch Mode**: Tests run once and complete quickly for deterministic results
 - **Minimal Logging**: Tests run silently unless errors occur
 
-This separation ensures plugins remain truly independent while leveraging shared testing utilities. Watch mode is intentionally not supported to maintain fast, reliable test execution.
+This separation ensures plugins remain truly independent while leveraging shared testing utilities. Bun's built-in test runner provides excellent performance without additional dependencies.
 
 ```bash
 # Run core framework tests only
-npm test
+bun test
 
 # Run all plugin tests
-npm run test:plugins
+bun run test:plugins
 
 # Run everything (core + plugins)
-npm run test:all
+bun run test:all
 
 # Test a specific plugin
-npm run test:plugin docker
+bun run test:plugin docker
 
 # List available plugins with test status
-npm run test:list-plugins
+bun run test:list-plugins
 ```
 
 For detailed testing documentation, see [docs/testing.md](docs/testing.md).
@@ -483,4 +506,4 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ---
 
-Built by [@EnchantedRobot](https://twitter.com/EnchantedRobot)
+Built by [@EnchantedRobot](https://x.com/EnchantedRobot)

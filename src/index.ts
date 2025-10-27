@@ -14,29 +14,32 @@ function showHelp(registry?: PluginRegistry) {
   console.log(`
 VSSH - AI-Friendly SSH Command Proxy with Safety Guards
 
-DESCRIPTION:
-  vssh helps AI assistants safely execute commands on remote servers.
-  It provides automatic safety checks and clear command syntax.
+QUICK START:
+  vssh <command>              # Execute any command on remote server
+  vssh "docker ps -a"         # Use quotes for complex commands
+  vssh --setup                # Configure SSH connection
+  vssh --help                 # Show this help
 
-SYNTAX:
-  vssh <command> [arguments...]
-  vssh "full command string"  # AI-friendly: entire command in quotes
-  vssh --setup                # Interactive setup wizard
-  vssh install                # Install vssh as MCP server in Claude Code
-  vssh --help                 # Show this help message
-  vssh --local <command>      # Execute command locally instead of on remote server
+FILE TRANSFERS:
+  vssh upload <local> <remote>    # Upload file to server
+  vssh download <remote> <local>  # Download file from server
 
-BASIC USAGE:
-  vssh ls                     # Simple command
-  vssh ls -la /var/log        # Command with arguments  
-  vssh "docker ps -a"         # Full command in quotes (AI-friendly)
-  vssh echo "hello world"     # Double quotes OK for arguments
+  Examples:
+    vssh upload ./config.yml /etc/app/config.yml
+    vssh download /var/log/app.log ./app.log
+    vssh put ./build.tar.gz /tmp/  # 'put' and 'push' work too
+    vssh get /etc/nginx/nginx.conf ./  # 'get' and 'pull' work too
+
+BASIC COMMANDS:
+  vssh ls -la /var/log        # Simple command with args
+  vssh df -h                  # Disk usage
+  vssh free -m                # Memory usage
+  vssh 'ps aux | grep node'   # Use single quotes for pipes
 
 PLUGIN MANAGEMENT:
-  vssh plugins list           # List available plugins
+  vssh plugins list           # List all plugins
   vssh plugins enable <name>  # Enable a plugin
-  vssh plugins disable <name> # Disable a plugin
-  vssh plugins info <name>    # Show plugin details`);
+  vssh plugins disable <name> # Disable a plugin`);
 
   // Dynamic plugin help section
   if (registry) {
@@ -80,29 +83,20 @@ AVAILABLE COMMANDS BY CATEGORY:`);
 
   console.log(`
 
-SYSTEM COMMANDS:
-  vssh df -h                  # Disk usage
-  vssh free -m                # Memory usage
-  vssh ps aux                 # Process list
-  vssh systemctl status nginx # Service status
-
-COMPLEX COMMANDS:
-  vssh 'ps aux | grep node'   # Use single quotes for pipes
-  vssh 'cat log | grep error' # Shell features need single quotes
-
 CONFIGURATION:
-  First run: vssh --setup
-  Config saved to: ~/.vssh/config.json
-  
-  Environment variables (optional):
-    VSSH_HOST      Target SSH host
-    VSSH_USER      SSH user (default: root)
-    VSSH_KEY_PATH  SSH private key path
+  vssh --setup                # Interactive setup wizard
+  vssh install                # Install as MCP server for Claude Code
+  Config: ~/.vssh/config.json
 
-IMPORTANT FOR AI TOOLS:
-  • For best AI compatibility, wrap entire commands in quotes: ✅ vssh "docker ps -a"
-  • Simple commands work without quotes too: ✅ vssh docker ps
-  • Use single quotes for shell features: ✅ vssh 'ps | grep app'
+LOCAL MODE:
+  vssh --local <command>      # Run command locally instead of remote
+  vssh local-mode on          # Enable local mode permanently
+  vssh local-mode off         # Disable local mode
+
+AI USAGE TIPS:
+  ✅ vssh "docker ps -a"      # Best: quotes around full command
+  ✅ vssh docker ps           # Also works: no quotes for simple commands
+  ✅ vssh 'ps | grep node'    # Use single quotes for pipes/redirects
 `);
 }
 

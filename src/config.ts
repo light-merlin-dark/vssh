@@ -75,7 +75,7 @@ export function loadConfig(): Config | null {
       user: envConfig.data.VSSH_USER,
       keyPath: envConfig.data.VSSH_KEY_PATH,
       plugins: {
-        enabled: ['docker', 'coolify'],  // Default enabled plugins
+        enabled: ['file-transfer', 'docker', 'coolify'],  // Default enabled plugins
         disabled: ['grafana']  // Grafana requires manual configuration
       }
     };
@@ -139,13 +139,13 @@ export async function setupInteractiveConfig(): Promise<Config> {
   // Generate encryption key
   const encryptionKey = crypto.randomBytes(32).toString('base64');
 
-  const config: Config = { 
-    host, 
-    user, 
+  const config: Config = {
+    host,
+    user,
     keyPath,
     encryptionKey,
     plugins: {
-      enabled: ['docker', 'coolify'],  // Default enabled plugins
+      enabled: ['file-transfer', 'docker', 'coolify'],  // Default enabled plugins
       disabled: ['grafana']  // Grafana requires manual configuration
     }
   };

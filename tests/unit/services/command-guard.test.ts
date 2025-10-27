@@ -1,18 +1,23 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { CommandGuardService } from '../../../src/services/command-guard-service';
 import { CommandGuard } from '../../../src/services/command-guard';
 import { CommandGuardExtension } from '../../../src/plugins/types';
 import * as fs from 'fs';
 
 // Mock fs module
-vi.mock('fs');
+mock.module('fs', () => ({
+  existsSync: mock(() => false),
+  readFileSync: mock(() => ''),
+  writeFileSync: mock(() => undefined),
+  mkdirSync: mock(() => undefined),
+}));
 
 describe('CommandGuardService', () => {
   let guardService: CommandGuardService;
   
   beforeEach(() => {
     guardService = new CommandGuardService();
-    vi.clearAllMocks();
+    mock.restore();
   });
   
   afterEach(() => {
@@ -209,26 +214,26 @@ describe('CommandGuardService', () => {
   describe('Logging and Display', () => {
     it('should delegate display to CommandGuard', () => {
       // Mock console.error to prevent output during tests
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-      const displaySpy = vi.spyOn(CommandGuard, 'displayBlockedMessage');
+      const consoleErrorSpy = spyOn(console, 'error').mockImplementation(() => {});
+      const displaySpy = spyOn(CommandGuard, 'displayBlockedMessage');
       const command = 'rm -rf /';
       const result = guardService.checkCommand(command);
-      
+
       guardService.displayBlockedMessage(command, result);
-      
+
       expect(displaySpy).toHaveBeenCalledWith(command, result);
-      
+
       // Restore console.error
       consoleErrorSpy.mockRestore();
     });
     
     it('should delegate logging to CommandGuard', () => {
-      const logSpy = vi.spyOn(CommandGuard, 'logBlockedCommand');
+      const logSpy = spyOn(CommandGuard, 'logBlockedCommand');
       const command = 'rm -rf /';
       const result = guardService.checkCommand(command);
-      
+
       guardService.logBlockedCommand(command, result);
-      
+
       expect(logSpy).toHaveBeenCalledWith(command, result);
     });
   });

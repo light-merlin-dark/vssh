@@ -9,24 +9,23 @@
   },
   "scripts": {
     "build": "tsc",
-    "dev": "ts-node src/index.ts",
-    "test": "vitest run tests/unit tests/integration",
-    "test:silent": "vitest run tests/unit tests/integration --reporter=basic 2>/dev/null",
-    "test:coverage": "vitest run --coverage",
-    "test:unit": "vitest run tests/unit",
-    "test:integration": "vitest run tests/integration",
-    "test:plugins": "vitest run tests/integration/plugin-test-runner.test.ts",
-    "test:plugin": "ts-node scripts/test-plugin-dynamic.ts",
-    "test:list-plugins": "ts-node scripts/list-plugins.ts",
-    "test:all": "npm test && npm run test:plugins",
-    "test:old": "npm run test:guard && npm run test:old-plugins",
-    "test:guard": "ts-node tests/test-guard.ts",
-    "test:old-plugins": "ts-node tests/test-plugins.ts",
-    "test:mcp": "npm run build && ts-node tests/test-mcp.ts",
+    "dev": "bun run src/index.ts",
+    "test": "bun test tests/unit tests/integration",
+    "test:silent": "bun test tests/unit tests/integration 2>/dev/null",
+    "test:coverage": "bun test --coverage",
+    "test:unit": "bun test tests/unit",
+    "test:integration": "bun test tests/integration",
+    "test:plugins": "bun test tests/integration/plugin-test-runner.test.ts",
+    "test:plugin": "bun run scripts/test-plugin-dynamic.ts",
+    "test:list-plugins": "bun run scripts/list-plugins.ts",
+    "test:all": "bun test && bun run test:plugins",
+    "test:guard": "bun run tests/test-guard.ts",
+    "test:old-plugins": "bun run tests/test-plugins.ts",
+    "test:mcp": "bun run build && bun run tests/test-mcp.ts",
     "prepublishOnly": "npm run build",
     "lint": "tsc --noEmit",
-    "start:mcp": "node dist/mcp-server.js",
-    "call-mcp": "ts-node src/utils/call-mcp.ts"
+    "start:mcp": "bun run dist/src/mcp-server.js",
+    "call-mcp": "bun run src/utils/call-mcp.ts"
   },
   "keywords": [
     "ssh",
@@ -62,11 +61,9 @@
   "devDependencies": {
     "@types/node": "^20.19.0",
     "@types/ssh2": "^1.11.18",
-    "@vitest/coverage-v8": "^3.2.3",
     "dotenv": "^16.6.1",
     "ts-node": "^10.9.2",
-    "typescript": "^5.0.0",
-    "vitest": "^3.2.3"
+    "typescript": "^5.0.0"
   },
   "files": [
     "dist",

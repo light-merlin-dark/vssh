@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, mock, spyOn } from 'bun:test';
 import { PluginRegistry } from '../../../src/plugins/registry';
 import { VsshPlugin } from '../../../src/plugins/types';
 import { createMockSSHService } from '../../test-utils/mock-ssh-service';
@@ -6,8 +6,8 @@ import { CommandGuardService } from '../../../src/services/command-guard-service
 import { ProxyService } from '../../../src/services/proxy-service';
 
 // Mock the saveConfig function
-vi.mock('../../../src/config', () => ({
-  saveConfig: vi.fn()
+mock.module('../../../src/config', () => ({
+  saveConfig: mock()
 }));
 
 describe('PluginRegistry', () => {
@@ -29,10 +29,10 @@ describe('PluginRegistry', () => {
       plugins: { enabled: [] }
     };
     logger = {
-      info: vi.fn(),
-      warn: vi.fn(),
-      error: vi.fn(),
-      debug: vi.fn()
+      info: mock(),
+      warn: mock(),
+      error: mock(),
+      debug: mock()
     };
     
     registry = new PluginRegistry(mockSSH, commandGuard, config, logger, proxyService);
@@ -87,7 +87,7 @@ describe('PluginRegistry', () => {
   
   describe('Runtime Dependencies', () => {
     it('should check runtime dependencies before executing commands', async () => {
-      const mockHandler = vi.fn();
+      const mockHandler = mock();
       const plugin: VsshPlugin = {
         name: 'test-deps',
         version: '1.0.0',
@@ -115,7 +115,7 @@ describe('PluginRegistry', () => {
       await registry.enablePlugin('test-deps');
       
       // Mock process.exit to prevent test from exiting
-      const mockExit = vi.spyOn(process, 'exit').mockImplementation(() => {
+      const mockExit = spyOn(process, 'exit').mockImplementation(() => {
         throw new Error('Process exit');
       });
       
@@ -128,7 +128,7 @@ describe('PluginRegistry', () => {
     });
     
     it('should execute command when dependencies are satisfied', async () => {
-      const mockHandler = vi.fn();
+      const mockHandler = mock();
       const plugin: VsshPlugin = {
         name: 'test-deps',
         version: '1.0.0',
