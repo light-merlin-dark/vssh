@@ -1,6 +1,6 @@
 {
   "name": "@light-merlin-dark/vssh",
-  "version": "1.7.1",
+  "version": "1.7.2",
   "description": "MCP-native SSH proxy for AI agents. CLI & MCP Server, plugin system, AI safety guards.",
   "main": "dist/src/index.js",
   "bin": {
