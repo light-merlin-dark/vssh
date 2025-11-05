@@ -8,25 +8,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- **AI-First JSON Output System**: Complete transformation to AI-friendly CLI with reliable structured output
-  - **JSON by default**: All commands now return structured JSON output for AI consumption
-  - **Multiple output modes**: `--json` (default), `--quiet`, `--raw` for flexible usage
-  - **Clean output separation**: Metadata to stderr, results to stdout for reliable parsing
-  - **Field filtering**: `--json --fields output,duration` for selective data retrieval
-  - **Structured JSON schema**: Consistent response format with success, command, duration, timestamp, output, error, and metadata fields
+- **SSH-Compatible Output System**: Strategic refinement to honor "SSH with safety guards" promise
+  - **SSH-compatible by default**: Commands return standard SSH output for zero-friction adoption
+  - **JSON opt-in mode**: `--json` flag provides structured output for automation needs
+  - **Clean output separation**: Raw output identical to SSH, JSON available when requested
+  - **Field filtering**: `--json --fields output,duration` for selective automation data
+  - **Optimized architecture**: Simple `executeProxy` approach with emoji removal
   - **Examples**:
     ```bash
-    vssh "docker ps"                    # Default: JSON output
-    vssh --quiet "docker ps"            # Clean output, metadata to stderr
-    vssh --raw "docker ps"              # Human-friendly with emojis
+    vssh "docker ps"                    # Default: SSH-compatible output
+    vssh --json "docker ps"            # Structured JSON for automation
     vssh --json --fields output "docker ps"  # Selective JSON fields
     ```
 
 - **Comprehensive Testing Infrastructure**: Enterprise-grade test coverage with Bun test runner
   - **91 total tests**: 62 unit tests, 29 integration tests, 12 performance tests
-  - **ProxyService Output Modes**: Complete coverage of JSON, quiet, and raw modes
-  - **CLI Integration Tests**: All flag combinations and edge cases validated
-  - **Performance Benchmarks**: JSON serialization, memory usage, and field filtering performance
+  - **SSH Compatibility Tests**: Validates identical output to SSH commands
+  - **JSON Opt-in Tests**: Ensures structured output works when requested
+  - **Performance Benchmarks**: Command execution speed and JSON serialization performance
   - **Advanced Test Utilities**: OutputCapture, JSON validation, and performance measurement tools
   - **71.90% line coverage**: Comprehensive coverage across all core components
 

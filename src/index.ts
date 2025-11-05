@@ -12,13 +12,18 @@ import * as path from 'path';
 
 function showHelp(registry?: PluginRegistry) {
   console.log(`
-VSSH - AI-Friendly SSH Command Proxy with Safety Guards
+VSSH - SSH Command Proxy with Safety Guards
 
 QUICK START:
-  vssh <command>              # Execute any command on remote server
+  vssh <command>              # Execute any command on remote server (SSH-compatible output)
   vssh "docker ps -a"         # Use quotes for complex commands
+  vssh --json "docker ps"     # Get structured JSON output for automation
   vssh --setup                # Configure SSH connection
   vssh --help                 # Show this help
+
+OUTPUT MODES:
+  vssh <command>              # Default: SSH-compatible output (no metadata)
+  vssh --json <command>       # Structured JSON with metadata for automation
 
 FILE TRANSFERS:
   vssh upload <local> <remote>    # Upload file to server
@@ -45,7 +50,7 @@ PLUGIN MANAGEMENT:
   if (registry) {
     const enabledPlugins = registry.getEnabledPlugins();
     const categorizedPlugins = new Map<string, typeof enabledPlugins>();
-
+    
     // Group plugins by category
     enabledPlugins.forEach(plugin => {
       const category = plugin.helpSummary?.category || 'Other';
@@ -57,16 +62,16 @@ PLUGIN MANAGEMENT:
 
     // Sort categories for consistent display
     const sortedCategories = Array.from(categorizedPlugins.keys()).sort();
-
+    
     if (sortedCategories.length > 0) {
       console.log(`
 
 AVAILABLE COMMANDS BY CATEGORY:`);
-
+      
       sortedCategories.forEach(category => {
         console.log(`\n  ${category}:`);
         const plugins = categorizedPlugins.get(category)!;
-
+        
         plugins.forEach(plugin => {
           if (plugin.helpSummary) {
             console.log(`    ${plugin.helpSummary.shortSummary}`);
@@ -108,7 +113,7 @@ function isCalledByClaude(): boolean {
   if (process.env.CLAUDECODE === '1') {
     return true;
   }
-
+  
   // Check for lack of TTY (Claude runs commands without TTY)
   if (!process.stdin.isTTY && !process.stdout.isTTY && !process.stderr.isTTY) {
     // Additional check for Claude-specific patterns
@@ -116,58 +121,18 @@ function isCalledByClaude(): boolean {
       return true;
     }
   }
-
+  
   return false;
 }
 
 async function main() {
   const args = process.argv.slice(2);
 
-  // Parse output mode flags - process in reverse order to handle index shifting
-  const jsonIndex = args.findIndex(arg => arg === '--json');
-  const quietIndex = args.findIndex(arg => arg === '--quiet');
-  const rawIndex = args.findIndex(arg => arg === '--raw');
-
-  let outputMode: 'raw' | 'quiet' | 'json' = 'json';
-  let jsonFields: string[] | undefined;
-
-  // Find the last occurrence of any output mode flag
-  const allOutputFlags = [
-    { index: jsonIndex, mode: 'json' as const },
-    { index: quietIndex, mode: 'quiet' as const },
-    { index: rawIndex, mode: 'raw' as const }
-  ].filter(flag => flag.index !== -1);
-
-  // Sort by index and take the last one
-  if (allOutputFlags.length > 0) {
-    allOutputFlags.sort((a, b) => a.index - b.index);
-    const lastFlag = allOutputFlags[allOutputFlags.length - 1];
-    outputMode = lastFlag.mode;
-
-    // Handle --fields flag if --json is the last flag
-    if (lastFlag.mode === 'json') {
-      // Parse --fields flag regardless of its position
-      const fieldsIdx = args.findIndex(arg => arg === '--fields');
-      if (fieldsIdx !== -1 && args[fieldsIdx + 1]) {
-        jsonFields = args[fieldsIdx + 1].split(',');
-        args.splice(fieldsIdx, 2); // Remove --fields and its value
-      }
-    }
-  }
-  // Remove all output mode flags from args (all occurrences)
-  const flagsToRemove = ['--json', '--quiet', '--raw'];
-  for (const flag of flagsToRemove) {
-    let flagIndex;
-    while ((flagIndex = args.indexOf(flag)) !== -1) {
-      args.splice(flagIndex, 1);
-    }
-  }
-
   // Skip Claude detection message for certain commands
-  const skipClaudeMessage = args.length === 0 ||
-    args[0] === '--help' ||
-    args[0] === '-h' ||
-    args[0] === '--setup' ||
+  const skipClaudeMessage = args.length === 0 || 
+    args[0] === '--help' || 
+    args[0] === '-h' || 
+    args[0] === '--setup' || 
     args[0] === 'install' ||
     args[0] === 'plugins';
 
@@ -182,29 +147,6 @@ async function main() {
   }
 
   const isHelpCommand = args.length === 0 || args[0] === '--help' || args[0] === '-h' || args[0] === 'help';
-
-  // Handle help for new flags
-  if (args[0] === '--help-output') {
-    console.log(`
-VSSH Output Mode Options:
-
-  --json [--fields field1,field2]    Default: Output structured JSON
-    Example: vssh "docker ps"
-    Example: vssh --json --fields output,duration "docker ps"
-    
-  --quiet                            Clean command output, metadata to stderr
-    Example: vssh --quiet "docker ps"
-    
-  --raw                              Human-friendly output with emojis
-    Example: vssh --raw "docker ps"
-    
-Default mode is --json for AI-friendly structured output.
-In --json mode, metadata goes to stderr and JSON result goes to stdout.
-In --quiet mode, metadata goes to stderr and clean output goes to stdout.
-In --raw mode, everything goes to stdout with emoji prefixes.
-`);
-    process.exit(0);
-  }
 
   // Handle setup
   if (args[0] === '--setup') {
@@ -231,7 +173,7 @@ In --raw mode, everything goes to stdout with emoji prefixes.
     process.exit(1);
   }
 
-// Validate config has proper values
+  // Validate config has proper values
   if (config.host === 'test' || config.keyPath === '/test' || !config.host || !config.keyPath) {
     console.error('❌ Invalid SSH configuration detected.');
     console.error('\nYour configuration appears to have placeholder values:');
@@ -255,7 +197,7 @@ In --raw mode, everything goes to stdout with emoji prefixes.
 
   // Determine local execution mode
   const isLocalExecution = hasLocalFlag || config.localMode === true;
-
+  
   // Initialize plugin system
   const logger = {
     info: (msg: string) => console.log(`ℹ️  ${msg}`),
@@ -263,25 +205,20 @@ In --raw mode, everything goes to stdout with emoji prefixes.
     error: (msg: string) => console.error(`❌ ${msg}`),
     debug: (msg: string) => console.debug(`🔍 ${msg}`)
   };
-
+  
   const sshService = new SSHService(config);
   const commandGuard = new CommandGuardService();
   const proxyService = new ProxyService(config, sshService, commandGuard);
   proxyService.setLocalMode(isLocalExecution);
-
-  // Set JSON fields if specified
-  if (jsonFields) {
-    proxyService.setJSONFields(jsonFields);
-  }
   const registry = new PluginRegistry(sshService, commandGuard, config, logger, proxyService, isLocalExecution);
-
+  
   // Apply plugin command guard extensions
   commandGuard.addExtensions(registry.getCommandGuardExtensions());
-
+  
   // Load built-in plugins
   const loader = new PluginLoader();
   const builtinPlugins = await loader.loadBuiltinPlugins();
-
+  
   for (const plugin of builtinPlugins) {
     try {
       await registry.loadPlugin(plugin);
@@ -289,13 +226,13 @@ In --raw mode, everything goes to stdout with emoji prefixes.
       logger.error(`Failed to load plugin ${plugin.name}: ${error.message}`);
     }
   }
-
+  
   // Handle help with loaded plugins
   if (isHelpCommand) {
     showHelp(registry);
     process.exit(0);
   }
-
+  
   // Handle plugin management commands
   if (args[0] === 'plugins' || args[0] === 'plugin') {
     await handlePluginsCommand(registry, args.slice(1));
@@ -305,7 +242,7 @@ In --raw mode, everything goes to stdout with emoji prefixes.
   // Check if this is a plugin command
   const commandName = args[0];
   const command = registry.getCommand(commandName);
-
+  
   if (command) {
     try {
       // Parse arguments for plugin command
@@ -313,25 +250,17 @@ In --raw mode, everything goes to stdout with emoji prefixes.
         _: args,
         ...parseFlags(args.slice(1))
       };
-
+      
       // Use the registry's executeCommand method which handles dependency checking
       await registry.executeCommand(commandName, parsedArgs);
     } catch (error: any) {
-      if (outputMode === 'json') {
-        const jsonResponse = proxyService.formatJSONResponse(
-          { command: args.join(' '), duration: 0, timestamp: new Date().toISOString(), output: '' },
-          error
-        );
-        console.log(jsonResponse);
-      } else {
-        console.error(`❌ ${error.message}`);
-      }
+      console.error(`❌ ${error.message}`);
       process.exit(1);
     }
   } else {
     // Not a plugin command, use original proxy behavior
     let commandArgs: string[];
-
+    
     // Handle -c or --command flag
     if (args[0] === '-c' || args[0] === '--command') {
       if (args.length < 2) {
@@ -345,30 +274,34 @@ In --raw mode, everything goes to stdout with emoji prefixes.
       commandArgs = args;
     }
 
-    // Execute command via SSH proxy with output mode
-    try {
-      const result = await proxyService.executeCommand(commandArgs.join(' '), { outputMode });
-
-      if (outputMode === 'json') {
-        const jsonResponse = proxyService.formatJSONResponse(result);
-        console.log(jsonResponse);
-      } else if (outputMode === 'quiet' || outputMode === 'raw') {
-        // Output already handled by ProxyService
-        if (result.output.trim()) {
-          console.log(result.output);
-        }
-      }
-    } catch (error: any) {
-      if (outputMode === 'json') {
-        const jsonResponse = proxyService.formatJSONResponse(
-          { command: commandArgs.join(' '), duration: 0, timestamp: new Date().toISOString(), output: '' },
-          error
-        );
-        console.log(jsonResponse);
+    // Check for JSON opt-in flag
+    const jsonIndex = args.indexOf('--json');
+    const isJsonMode = jsonIndex !== -1;
+    
+    // Remove --json flag from args if present
+    if (isJsonMode) {
+      args.splice(jsonIndex, 1);
+      // Update commandArgs after removing --json
+      if (args[0] === '-c' || args[0] === '--command') {
+        commandArgs = [args[1]];
       } else {
-        console.error(`❌ ${error.message}`);
+        commandArgs = args;
       }
-      process.exit(1);
+    }
+
+    // Execute command via SSH proxy
+    if (isJsonMode) {
+      // JSON mode: use ProxyService for structured output
+      const sshService = new SSHService(config);
+      const proxyService = new ProxyService(config, sshService, commandGuard);
+      proxyService.setLocalMode(isLocalExecution);
+      
+      const result = await proxyService.executeCommand(commandArgs.join(' '), { outputMode: 'json' });
+      const jsonResponse = proxyService.formatJSONResponse(result);
+      console.log(jsonResponse);
+    } else {
+      // Default mode: SSH-compatible output
+      await executeProxy(commandArgs, config, commandGuard);
     }
   }
 }
@@ -376,14 +309,14 @@ In --raw mode, everything goes to stdout with emoji prefixes.
 // Simple flag parser for plugin commands
 function parseFlags(args: string[]): Record<string, any> {
   const flags: Record<string, any> = {};
-
+  
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
-
+    
     if (arg.startsWith('--')) {
       const key = arg.slice(2);
       const next = args[i + 1];
-
+      
       if (next && !next.startsWith('-')) {
         flags[key] = next;
         i++;
@@ -393,7 +326,7 @@ function parseFlags(args: string[]): Record<string, any> {
     } else if (arg.startsWith('-') && arg.length === 2) {
       const key = arg.slice(1);
       const next = args[i + 1];
-
+      
       if (next && !next.startsWith('-')) {
         flags[key] = next;
         i++;
@@ -402,7 +335,7 @@ function parseFlags(args: string[]): Record<string, any> {
       }
     }
   }
-
+  
   return flags;
 }
 
