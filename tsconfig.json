@@ -1,25 +1,31 @@
 {
   "compilerOptions": {
-    "target": "ES2022",
+    "target": "ES2020",
     "module": "commonjs",
     "moduleResolution": "node",
-    "lib": ["ES2022"],
-    "rootDir": ".",
-    "outDir": "./dist",
-    "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "declaration": true,
-    "types": ["node"],
+    "lib": ["ES2020"],
+    "rootDir": "./src",
+    "outDir": "dist",
+    "baseUrl": ".",
     "paths": {
       "@vssh/test-utils": ["./tests/test-utils/index.ts"],
       "@vssh/test-utils/*": ["./tests/test-utils/*"]
     },
-    "baseUrl": "."
+    "types": ["node"],
+    "strict": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "inlineSources": true,
+    "skipLibCheck": true,
+    "noEmitOnError": true
   },
-  "include": ["src/**/*", "tests/**/*"],
-  "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts", "tests/setup.ts"]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
 }

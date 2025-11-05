@@ -123,6 +123,46 @@ function isCalledByClaude(): boolean {
 async function main() {
   const args = process.argv.slice(2);
 
+  // Parse output mode flags - process in reverse order to handle index shifting
+  const jsonIndex = args.findIndex(arg => arg === '--json');
+  const quietIndex = args.findIndex(arg => arg === '--quiet');
+  const rawIndex = args.findIndex(arg => arg === '--raw');
+  
+  let outputMode: 'raw' | 'quiet' | 'json' = 'json';
+  let jsonFields: string[] | undefined;
+  
+  // Find the last occurrence of any output mode flag
+  const allOutputFlags = [
+    { index: jsonIndex, mode: 'json' as const },
+    { index: quietIndex, mode: 'quiet' as const },
+    { index: rawIndex, mode: 'raw' as const }
+  ].filter(flag => flag.index !== -1);
+  
+  // Sort by index and take the last one
+  if (allOutputFlags.length > 0) {
+    allOutputFlags.sort((a, b) => a.index - b.index);
+    const lastFlag = allOutputFlags[allOutputFlags.length - 1];
+    outputMode = lastFlag.mode;
+    
+    // Handle --fields flag if --json is the last flag
+    if (lastFlag.mode === 'json') {
+      const fieldsIndex = args.findIndex((arg, i) => i > lastFlag.index && arg === '--fields');
+      if (fieldsIndex !== -1 && args[fieldsIndex + 1]) {
+        jsonFields = args[fieldsIndex + 1].split(',');
+        args.splice(fieldsIndex, 2); // Remove --fields and its value
+      }
+    }
+  }
+  
+  // Remove all output mode flags from args
+  const flagsToRemove = ['--json', '--quiet', '--raw'];
+  for (const flag of flagsToRemove) {
+    const flagIndex = args.indexOf(flag);
+    if (flagIndex !== -1) {
+      args.splice(flagIndex, 1);
+    }
+  }
+
   // Skip Claude detection message for certain commands
   const skipClaudeMessage = args.length === 0 || 
     args[0] === '--help' || 
@@ -142,6 +182,29 @@ async function main() {
   }
 
   const isHelpCommand = args.length === 0 || args[0] === '--help' || args[0] === '-h' || args[0] === 'help';
+
+  // Handle help for new flags
+  if (args[0] === '--help-output') {
+    console.log(`
+VSSH Output Mode Options:
+
+  --json [--fields field1,field2]    Default: Output structured JSON
+    Example: vssh "docker ps"
+    Example: vssh --json --fields output,duration "docker ps"
+    
+  --quiet                            Clean command output, metadata to stderr
+    Example: vssh --quiet "docker ps"
+    
+  --raw                              Human-friendly output with emojis
+    Example: vssh --raw "docker ps"
+    
+Default mode is --json for AI-friendly structured output.
+In --json mode, metadata goes to stderr and JSON result goes to stdout.
+In --quiet mode, metadata goes to stderr and clean output goes to stdout.
+In --raw mode, everything goes to stdout with emoji prefixes.
+`);
+    process.exit(0);
+  }
 
   // Handle setup
   if (args[0] === '--setup') {
@@ -205,6 +268,11 @@ async function main() {
   const commandGuard = new CommandGuardService();
   const proxyService = new ProxyService(config, sshService, commandGuard);
   proxyService.setLocalMode(isLocalExecution);
+  
+  // Set JSON fields if specified
+  if (jsonFields) {
+    proxyService.setJSONFields(jsonFields);
+  }
   const registry = new PluginRegistry(sshService, commandGuard, config, logger, proxyService, isLocalExecution);
   
   // Apply plugin command guard extensions
@@ -249,7 +317,15 @@ async function main() {
       // Use the registry's executeCommand method which handles dependency checking
       await registry.executeCommand(commandName, parsedArgs);
     } catch (error: any) {
-      console.error(`❌ ${error.message}`);
+      if (outputMode === 'json') {
+        const jsonResponse = proxyService.formatJSONResponse(
+          { command: args.join(' '), duration: 0, timestamp: new Date().toISOString(), output: '' },
+          error
+        );
+        console.log(jsonResponse);
+      } else {
+        console.error(`❌ ${error.message}`);
+      }
       process.exit(1);
     }
   } else {
@@ -269,8 +345,31 @@ async function main() {
       commandArgs = args;
     }
 
-    // Execute command via SSH proxy
-    await executeProxy(commandArgs, config, commandGuard);
+    // Execute command via SSH proxy with output mode
+    try {
+      const result = await proxyService.executeCommand(commandArgs.join(' '), { outputMode });
+      
+      if (outputMode === 'json') {
+        const jsonResponse = proxyService.formatJSONResponse(result);
+        console.log(jsonResponse);
+      } else if (outputMode === 'quiet' || outputMode === 'raw') {
+        // Output already handled by ProxyService
+        if (result.output.trim()) {
+          console.log(result.output);
+        }
+      }
+    } catch (error: any) {
+      if (outputMode === 'json') {
+        const jsonResponse = proxyService.formatJSONResponse(
+          { command: commandArgs.join(' '), duration: 0, timestamp: new Date().toISOString(), output: '' },
+          error
+        );
+        console.log(jsonResponse);
+      } else {
+        console.error(`❌ ${error.message}`);
+      }
+      process.exit(1);
+    }
   }
 }
 

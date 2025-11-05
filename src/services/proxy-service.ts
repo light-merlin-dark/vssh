@@ -8,6 +8,8 @@ export interface ProxyOptions {
   skipGuard?: boolean;
   skipLogging?: boolean;
   workingDirectory?: string;
+  outputMode?: 'raw' | 'quiet' | 'json';
+  jsonFields?: string[];
 }
 
 export interface CommandResult {
@@ -15,6 +17,22 @@ export interface CommandResult {
   duration: number;
   timestamp: string;
   command: string;
+  isLocal?: boolean;
+  exitCode?: number;
+}
+
+export interface JSONResponse {
+  success: boolean;
+  command: string;
+  duration: number;
+  timestamp: string;
+  output?: string;
+  error?: string;
+  metadata?: {
+    exitCode?: number;
+    signal?: string;
+    isLocal?: boolean;
+  };
 }
 
 export class ProxyService {
@@ -40,6 +58,7 @@ export class ProxyService {
   async executeCommand(command: string, options: ProxyOptions = {}): Promise<CommandResult> {
     const timestamp = new Date().toISOString();
     const startTime = Date.now();
+    const outputMode = options.outputMode || 'raw';
 
     // Check command safety unless explicitly skipped
     if (!options.skipGuard) {
@@ -63,7 +82,11 @@ export class ProxyService {
 
     // Log command start
     if (!options.skipLogging) {
-      console.log(`🚀 Executing${this.isLocal ? ' locally' : ''}: ${command}`);
+      if (outputMode === 'quiet' || outputMode === 'json') {
+        console.error(`🚀 Executing${this.isLocal ? ' locally' : ''}: ${command}`);
+      } else {
+        console.log(`🚀 Executing${this.isLocal ? ' locally' : ''}: ${command}`);
+      }
       const logEntry = `[${timestamp}] ${this.isLocal ? 'LOCAL' : 'REMOTE'} COMMAND: ${command}\n`;
       this.ensureLogsDirectory();
       fs.appendFileSync(path.join(LOGS_PATH, 'proxy_commands.log'), logEntry);
@@ -102,14 +125,20 @@ export class ProxyService {
     if (!options.skipLogging) {
       const resultLog = `[${timestamp}] RESULT [${duration}ms]:\n${output}\n${'='.repeat(80)}\n`;
       fs.appendFileSync(path.join(LOGS_PATH, 'proxy_commands.log'), resultLog);
-      console.log(`✅ Completed in ${duration}ms`);
+      if (outputMode === 'quiet' || outputMode === 'json') {
+        console.error(`✅ Completed in ${duration}ms`);
+      } else {
+        console.log(`✅ Completed in ${duration}ms`);
+      }
     }
 
     return {
       output,
       duration,
       timestamp,
-      command
+      command,
+      isLocal: this.isLocal,
+      exitCode: 0
     };
   }
 
@@ -117,5 +146,41 @@ export class ProxyService {
     if (!fs.existsSync(LOGS_PATH)) {
       fs.mkdirSync(LOGS_PATH, { recursive: true });
     }
+  }
+
+  formatJSONResponse(result: CommandResult, error?: Error): string {
+    const response: JSONResponse = {
+      success: !error,
+      command: result.command,
+      duration: result.duration,
+      timestamp: result.timestamp,
+      output: result.output,
+      error: error?.message,
+      metadata: {
+        isLocal: result.isLocal,
+        exitCode: error ? 1 : result.exitCode || 0
+      }
+    };
+
+    // Apply field filtering if specified
+    if (this.jsonFields && this.jsonFields.length > 0) {
+      const filteredResponse: any = {};
+      this.jsonFields.forEach(field => {
+        if (field in response) {
+          filteredResponse[field] = (response as any)[field];
+        }
+        if (field === 'metadata' && response.metadata) {
+          filteredResponse.metadata = response.metadata;
+        }
+      });
+      return JSON.stringify(filteredResponse, null, 2);
+    }
+
+    return JSON.stringify(response, null, 2);
+  }
+
+  private jsonFields?: string[];
+  setJSONFields(fields: string[]): void {
+    this.jsonFields = fields;
   }
 }
