@@ -75,13 +75,12 @@ describe('ProxyService Output Modes', () => {
       });
     });
 
-    it('should route metadata to stderr in JSON mode', async () => {
+    it('should not output metadata to console in JSON mode (SSH compatibility)', async () => {
       await proxyService.executeCommand('echo test', { outputMode: 'json' });
-      
-      expect(console.error).toHaveBeenCalledWith('🚀 Executing: echo test');
-      expect(console.error).toHaveBeenCalledWith(expect.stringMatching(/✅ Completed in \d+ms/));
-      expect(console.log).not.toHaveBeenCalledWith('🚀 Executing: echo test');
-      expect(console.log).not.toHaveBeenCalledWith(expect.stringMatching(/✅ Completed in \d+ms/));
+
+      // No console output for SSH purity - all logging goes to file only
+      expect(console.error).not.toHaveBeenCalled();
+      expect(console.log).not.toHaveBeenCalled();
     });
 
     it('should format JSON response correctly', async () => {
@@ -163,13 +162,12 @@ describe('ProxyService Output Modes', () => {
       });
     });
 
-    it('should route metadata to stderr in quiet mode', async () => {
+    it('should not output metadata to console in quiet mode (SSH compatibility)', async () => {
       await proxyService.executeCommand('echo test', { outputMode: 'quiet' });
-      
-      expect(console.error).toHaveBeenCalledWith('🚀 Executing: echo test');
-      expect(console.error).toHaveBeenCalledWith(expect.stringMatching(/✅ Completed in \d+ms/));
-      expect(console.log).not.toHaveBeenCalledWith('🚀 Executing: echo test');
-      expect(console.log).not.toHaveBeenCalledWith(expect.stringMatching(/✅ Completed in \d+ms/));
+
+      // No console output for SSH purity - all logging goes to file only
+      expect(console.error).not.toHaveBeenCalled();
+      expect(console.log).not.toHaveBeenCalled();
     });
   });
 
@@ -187,13 +185,12 @@ describe('ProxyService Output Modes', () => {
       });
     });
 
-    it('should include emoji prefixes in stdout in raw mode', async () => {
+    it('should not output metadata in raw mode (SSH compatibility)', async () => {
       await proxyService.executeCommand('echo test', { outputMode: 'raw' });
-      
-      expect(console.log).toHaveBeenCalledWith('🚀 Executing: echo test');
-      expect(console.log).toHaveBeenCalledWith(expect.stringMatching(/✅ Completed in \d+ms/));
-      expect(console.error).not.toHaveBeenCalledWith('🚀 Executing: echo test');
-      expect(console.error).not.toHaveBeenCalledWith(expect.stringMatching(/✅ Completed in \d+ms/));
+
+      // No console output for SSH purity - all logging goes to file only
+      expect(console.error).not.toHaveBeenCalled();
+      expect(console.log).not.toHaveBeenCalled();
     });
   });
 
@@ -205,27 +202,30 @@ describe('ProxyService Output Modes', () => {
     it('should handle local execution in JSON mode', async () => {
       // Mock child_process for local execution
       spyOn(require('child_process'), 'execSync').mockReturnValue('local output');
-      
+
       const result = await proxyService.executeCommand('echo local', { outputMode: 'json' });
-      
+
       expect(result.isLocal).toBe(true);
-      expect(console.error).toHaveBeenCalledWith('🚀 Executing locally: echo local');
+      // No console output for SSH purity
+      expect(console.error).not.toHaveBeenCalled();
     });
 
     it('should handle local execution in quiet mode', async () => {
       spyOn(require('child_process'), 'execSync').mockReturnValue('local output');
-      
+
       await proxyService.executeCommand('echo local', { outputMode: 'quiet' });
-      
-      expect(console.error).toHaveBeenCalledWith('🚀 Executing locally: echo local');
+
+      // No console output for SSH purity
+      expect(console.error).not.toHaveBeenCalled();
     });
 
     it('should handle local execution in raw mode', async () => {
       spyOn(require('child_process'), 'execSync').mockReturnValue('local output');
-      
+
       await proxyService.executeCommand('echo local', { outputMode: 'raw' });
-      
-      expect(console.log).toHaveBeenCalledWith('🚀 Executing locally: echo local');
+
+      // No console output for SSH purity
+      expect(console.log).not.toHaveBeenCalled();
     });
   });
 

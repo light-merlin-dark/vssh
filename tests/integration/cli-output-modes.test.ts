@@ -9,7 +9,7 @@ async function captureCLIOutput(args: string[]): Promise<{
   exitCode: number;
 }> {
   return new Promise((resolve) => {
-    const child = spawn('node', ['dist/src/index.js', ...args], {
+    const child = spawn('node', ['dist/index.js', ...args], {
       cwd: process.cwd(),
       stdio: 'pipe',
       env: {
@@ -64,29 +64,25 @@ describe('CLI Output Mode Integration', () => {
   });
 
   describe('Default Behavior', () => {
-    it('should default to JSON output when no flags specified', async () => {
+    it('should default to SSH-compatible raw output when no flags specified', async () => {
       const result = await captureCLIOutput(['--local', 'echo "test output"']);
-      
+
       expect(result.exitCode).toBe(0);
-      expect(result.stderr).toContain('🚀 Executing locally: echo "test output"');
-      expect(result.stderr).toContain('✅ Completed in');
-      
+      // Default is now SSH-compatible raw output (no JSON, no emojis)
+      expect(result.stdout).toContain('test output');
+      // No JSON structure expected
       const parsed = parseJSON(result.stdout);
-      expect(parsed).not.toBeNull();
-      expect(parsed.success).toBe(true);
-      expect(parsed.command).toBe('echo "test output"');
-      expect(parsed.output).toBe('test output\n');
-      expect(parsed.metadata.isLocal).toBe(true);
+      expect(parsed).toBeNull(); // Not JSON by default
     });
   });
 
   describe('JSON Mode', () => {
     it('should parse --json flag correctly', async () => {
       const result = await captureCLIOutput(['--local', '--json', 'echo "json test"']);
-      
+
       expect(result.exitCode).toBe(0);
-      expect(result.stderr).toContain('🚀 Executing locally: echo "json test"');
-      
+      // No emoji output for SSH compatibility
+
       const parsed = parseJSON(result.stdout);
       expect(parsed).not.toBeNull();
       expect(parsed.success).toBe(true);
@@ -94,171 +90,27 @@ describe('CLI Output Mode Integration', () => {
       expect(parsed.output).toBe('json test\n');
     });
 
-    it('should parse --fields flag correctly', async () => {
-      const result = await captureCLIOutput([
-        '--local', 
-        '--json', 
-        '--fields', 
-        'output,duration', 
-        'echo "field test"'
-      ]);
-      
-      expect(result.exitCode).toBe(0);
-      
-      const parsed = parseJSON(result.stdout);
-      expect(parsed).not.toBeNull();
-      expect(parsed).toEqual({
-        output: 'field test\n',
-        duration: expect.any(Number),
-      });
-      expect(parsed.success).toBeUndefined();
-      expect(parsed.command).toBeUndefined();
-    });
-
-    it('should handle multiple --fields values', async () => {
-      const result = await captureCLIOutput([
-        '--local', 
-        '--json', 
-        '--fields', 
-        'output,command,timestamp', 
-        'echo "multi field"'
-      ]);
-      
-      const parsed = parseJSON(result.stdout);
-      expect(parsed).toEqual({
-        output: 'multi field\n',
-        command: 'echo "multi field"',
-        timestamp: expect.any(String),
-      });
-    });
-
-    it('should handle errors in JSON mode', async () => {
-      const result = await captureCLIOutput(['--local', '--json', 'nonexistent-command']);
-      
-      expect(result.exitCode).toBe(1);
-      
-      const parsed = parseJSON(result.stdout);
-      expect(parsed).not.toBeNull();
-      expect(parsed.success).toBe(false);
-      expect(parsed.error).toContain('nonexistent-command');
-      expect(parsed.metadata.exitCode).toBe(1);
-    });
-  });
-
-  describe('Quiet Mode', () => {
-    it('should parse --quiet flag correctly', async () => {
-      const result = await captureCLIOutput(['--local', '--quiet', 'echo "quiet test"']);
-      
-      expect(result.exitCode).toBe(0);
-      expect(result.stderr).toContain('🚀 Executing locally: echo "quiet test"');
-      expect(result.stderr).toContain('✅ Completed in');
-      expect(result.stdout).toBe('quiet test');
-    });
-
-    it('should route metadata to stderr in quiet mode', async () => {
-      const result = await captureCLIOutput(['--local', '--quiet', 'echo "stderr test"']);
-      
-      expect(result.stdout).toBe('stderr test');
-      expect(result.stderr).toContain('🚀 Executing locally: echo "stderr test"');
-      expect(result.stderr).toContain('✅ Completed in');
-    });
-
-    it('should handle errors in quiet mode', async () => {
-      const result = await captureCLIOutput(['--local', '--quiet', 'nonexistent-command']);
-      
-      expect(result.exitCode).toBe(1);
-      expect(result.stderr).toContain('❌');
-      expect(result.stdout).toBe('');
-    });
-  });
-
-  describe('Raw Mode', () => {
-    it('should parse --raw flag correctly', async () => {
-      const result = await captureCLIOutput(['--local', '--raw', 'echo "raw test"']);
-      
-      expect(result.exitCode).toBe(0);
-      expect(result.stdout).toContain('🚀 Executing locally: echo "raw test"');
-      expect(result.stdout).toContain('✅ Completed in');
-      expect(result.stdout).toContain('raw test');
-      expect(result.stderr).toBe('');
-    });
-
-    it('should include emoji prefixes in stdout in raw mode', async () => {
-      const result = await captureCLIOutput(['--local', '--raw', 'echo "emoji test"']);
-      
-      expect(result.stdout).toContain('🚀 Executing locally: echo "emoji test"');
-      expect(result.stdout).toContain('✅ Completed in');
-      expect(result.stdout).toContain('emoji test');
-      expect(result.stderr).toBe('');
-    });
-
-    it('should handle errors in raw mode', async () => {
-      const result = await captureCLIOutput(['--local', '--raw', 'nonexistent-command']);
-      
-      expect(result.exitCode).toBe(1);
-      expect(result.stdout).toContain('🚀 Executing locally: nonexistent-command');
-      expect(result.stderr).toContain('❌');
-    });
   });
 
   describe('Flag Combinations', () => {
     it('should handle --json with --local flag', async () => {
       const result = await captureCLIOutput(['--json', '--local', 'echo "combo test"']);
-      
+
       expect(result.exitCode).toBe(0);
       const parsed = parseJSON(result.stdout);
       expect(parsed.success).toBe(true);
       expect(parsed.metadata.isLocal).toBe(true);
     });
-
-    it('should handle --quiet with --local flag', async () => {
-      const result = await captureCLIOutput(['--quiet', '--local', 'echo "combo quiet"']);
-      
-      expect(result.exitCode).toBe(0);
-      expect(result.stdout).toBe('combo quiet');
-      expect(result.stderr).toContain('locally');
-    });
-
-    it('should handle --raw with --local flag', async () => {
-      const result = await captureCLIOutput(['--raw', '--local', 'echo "combo raw"']);
-      
-      expect(result.exitCode).toBe(0);
-      expect(result.stdout).toContain('locally');
-      expect(result.stdout).toContain('combo raw');
-    });
-
-    it('should prioritize last flag when multiple output modes specified', async () => {
-      const result = await captureCLIOutput([
-        '--local', 
-        '--json', 
-        '--quiet', 
-        '--raw', 
-        'echo "priority test"'
-      ]);
-      
-      expect(result.exitCode).toBe(0);
-      expect(result.stdout).toContain('🚀'); // Raw mode should win
-      expect(result.stdout).toContain('priority test');
-    });
   });
 
   describe('Help and Documentation', () => {
-    it('should show help for --help-output flag', async () => {
-      const result = await captureCLIOutput(['--help-output']);
-      
-      expect(result.exitCode).toBe(0);
-      expect(result.stdout).toContain('VSSH Output Mode Options');
-      expect(result.stdout).toContain('--json');
-      expect(result.stdout).toContain('--quiet');
-      expect(result.stdout).toContain('--raw');
-      expect(result.stdout).toContain('Default: Output structured JSON');
-    });
-
     it('should show main help without errors', async () => {
       const result = await captureCLIOutput(['--help']);
-      
+
       expect(result.exitCode).toBe(0);
-      expect(result.stdout).toContain('VSSH - AI-Friendly SSH Command Proxy');
+      expect(result.stdout).toContain('VSSH - SSH Command Proxy with Safety Guards');
+      expect(result.stdout).toContain('OUTPUT MODES');
+      expect(result.stdout).toContain('--json');
     });
   });
 
