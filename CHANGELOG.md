@@ -65,6 +65,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **For Scripts**: Use `--quiet` flag for clean command output without metadata
 - **For Selective Data**: Use `--json --fields field1,field2` for minimal output
 
+## [1.7.5] - 2025-11-06
+
+### Fixed
+- **Pure SSH Compatibility**: Removed all decorative output for true SSH proxy behavior
+  - Removed emoji output (🚀, ✅, ❌) from all console messages
+  - Removed "Executing..." and "Completed in Xms" console messages
+  - Command execution logs now only write to `~/.vssh/data/logs/proxy_commands.log`
+  - Console output is now identical to SSH command output
+  - Logger messages stripped of emoji prefixes for clean error reporting
+
+### Changed
+- **Package Structure**: Fixed bin paths in package.json
+  - Updated from `dist/src/index.js` to `dist/index.js` to match TypeScript build output
+  - Updated from `dist/src/mcp-server.js` to `dist/mcp-server.js`
+  - Ensures proper global installation via npm
+
+### Performance
+- **Reduced Console Noise**: Eliminated unnecessary console output for faster terminal rendering
+- **File-Only Logging**: Command history and timing data preserved in log files without console overhead
+
 ## [1.8.0] - 2025-07-01
 
 ### Added
