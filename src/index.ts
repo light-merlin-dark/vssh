@@ -200,10 +200,10 @@ async function main() {
   
   // Initialize plugin system
   const logger = {
-    info: (msg: string) => console.log(`ℹ️  ${msg}`),
-    warn: (msg: string) => console.warn(`⚠️  ${msg}`),
-    error: (msg: string) => console.error(`❌ ${msg}`),
-    debug: (msg: string) => console.debug(`🔍 ${msg}`)
+    info: (msg: string) => console.log(msg),
+    warn: (msg: string) => console.warn(msg),
+    error: (msg: string) => console.error(msg),
+    debug: (msg: string) => console.debug(msg)
   };
   
   const sshService = new SSHService(config);

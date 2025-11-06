@@ -80,13 +80,8 @@ export class ProxyService {
       }
     }
 
-    // Log command start
+    // Log command start (to file only, no console output for SSH purity)
     if (!options.skipLogging) {
-      if (outputMode === 'quiet' || outputMode === 'json') {
-        console.error(`🚀 Executing${this.isLocal ? ' locally' : ''}: ${command}`);
-      } else {
-        console.log(`🚀 Executing${this.isLocal ? ' locally' : ''}: ${command}`);
-      }
       const logEntry = `[${timestamp}] ${this.isLocal ? 'LOCAL' : 'REMOTE'} COMMAND: ${command}\n`;
       this.ensureLogsDirectory();
       fs.appendFileSync(path.join(LOGS_PATH, 'proxy_commands.log'), logEntry);
@@ -121,15 +116,10 @@ export class ProxyService {
 
     const duration = Date.now() - startTime;
 
-    // Log result
+    // Log result (to file only, no console output for SSH purity)
     if (!options.skipLogging) {
       const resultLog = `[${timestamp}] RESULT [${duration}ms]:\n${output}\n${'='.repeat(80)}\n`;
       fs.appendFileSync(path.join(LOGS_PATH, 'proxy_commands.log'), resultLog);
-      if (outputMode === 'quiet' || outputMode === 'json') {
-        console.error(`✅ Completed in ${duration}ms`);
-      } else {
-        console.log(`✅ Completed in ${duration}ms`);
-      }
     }
 
     return {
