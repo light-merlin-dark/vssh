@@ -32,12 +32,12 @@ const dockerPlugin: VsshPlugin = {
   ],
   
   helpSummary: {
-    shortSummary: 'Docker container management - ldc (list), gdc (get), sdl (logs), ldp (ports), ldn (networks), sdi (info)',
-    longSummary: 'Complete Docker container management suite with 6 core commands. List containers (ldc), find specific containers (gdc), show logs (sdl), view port mappings (ldp), list networks (ldn), and display system info (sdi). Supports both CLI and MCP integration.',
+    shortSummary: 'Docker container management - dls (list), gdc (get), sdl (logs), ldp (ports), ldn (networks), sdi (info)',
+    longSummary: 'Complete Docker container management suite with 6 core commands. List containers (dls), find specific containers (gdc), show logs (sdl), view port mappings (ldp), list networks (ldn), and display system info (sdi). Supports both CLI and MCP integration.',
     category: 'Infrastructure',
-    keyCommands: ['ldc', 'gdc', 'sdl', 'ldp', 'ldn', 'sdi'],
+    keyCommands: ['dls', 'gdc', 'sdl', 'ldp', 'ldn', 'sdi'],
     examples: [
-      'vssh ldc  # List all containers',
+      'vssh dls  # List all containers',
       'vssh gdc myapp  # Find container by name',
       'vssh sdl web --tail 50  # Show logs'
     ]
@@ -46,7 +46,7 @@ const dockerPlugin: VsshPlugin = {
   mcpContext: {
     section: 'DOCKER COMMANDS',
     commands: [
-      { command: 'vssh ldc', description: 'List all containers' },
+      { command: 'vssh dls', description: 'List all containers' },
       { command: 'vssh gdc myapp', description: 'Find container by name' },
       { command: 'vssh sdl web --tail 50', description: 'Show container logs' },
       { command: 'vssh ldp', description: 'List port mappings' },
@@ -58,14 +58,14 @@ const dockerPlugin: VsshPlugin = {
   commands: [
     {
       name: 'list-docker-containers',
-      aliases: ['ldc'],
+      aliases: ['dls'],
       description: 'List all Docker containers',
       usage: 'vssh list-docker-containers [--all] [--limit <n>]',
       examples: [
         'vssh list-docker-containers',
-        'vssh ldc',
-        'vssh ldc --all',
-        'vssh ldc --limit 10'
+        'vssh dls',
+        'vssh dls --all',
+        'vssh dls --limit 10'
       ],
       handler: listContainersCommand,
       mcpName: 'list_docker_containers',

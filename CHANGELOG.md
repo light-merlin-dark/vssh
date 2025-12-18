@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.2] - 2025-12-17
+
+### Changed
+- **Coolify `ldc` command now AI-friendly**: Lists filenames only by default, expand with argument
+  - `vssh ldc` - Lists config filenames only (was: dumping all config contents)
+  - `vssh ldc <name>` - Shows full config contents for specific config
+  - Reduces context usage for AI agents by ~95%
+  - Supports fuzzy matching for config names
+- **Docker alias changed**: `ldc` → `dls` for list-docker-containers to avoid Coolify conflict
+
 ## [1.8.1] - 2025-12-17
 
 ### Added

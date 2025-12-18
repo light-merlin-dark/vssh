@@ -39,7 +39,8 @@ const coolifyPlugin: VsshPlugin = {
     commands: [
       { command: 'vssh udc <file> [--name <n>]', description: 'Update/create dynamic config from local YAML' },
       { command: 'vssh vdc <name>', description: 'View a specific dynamic config' },
-      { command: 'vssh lcd', description: 'List all dynamic configs' },
+      { command: 'vssh ldc', description: 'List config filenames' },
+      { command: 'vssh ldc <name>', description: 'View a specific config\'s contents' },
       { command: 'vssh gcp', description: 'Get proxy configuration' }
     ]
   },
@@ -87,12 +88,13 @@ const coolifyPlugin: VsshPlugin = {
     },
     {
       name: 'list-coolify-dynamic-configs',
-      aliases: ['lcd'],  // Note: 'ldc' is used by docker plugin
-      description: 'List all Coolify dynamic configurations',
-      usage: 'vssh list-coolify-dynamic-configs',
+      aliases: ['lcd', 'ldc'],
+      description: 'List Coolify dynamic configurations, or view a specific config',
+      usage: 'vssh list-coolify-dynamic-configs [config-name]',
       examples: [
-        'vssh list-coolify-dynamic-configs',
-        'vssh lcd'
+        'vssh lcd                    # List all config filenames',
+        'vssh lcd my-service         # View my-service.yaml contents',
+        'vssh ldc analytics.yaml     # View specific config'
       ],
       handler: listDynamicConfigsCommand,
       mcpName: 'list_coolify_dynamic_configs'
@@ -142,10 +144,15 @@ const coolifyPlugin: VsshPlugin = {
     },
     {
       name: 'list_coolify_dynamic_configs',
-      description: 'List and display all dynamic Traefik configurations from the Coolify proxy',
+      description: 'List dynamic Traefik config filenames from Coolify proxy. Pass configName to view a specific config\'s contents.',
       inputSchema: {
         type: 'object',
-        properties: {}
+        properties: {
+          configName: {
+            type: 'string',
+            description: 'Optional config name to view contents (e.g., "my-service" or "my-service.yaml")'
+          }
+        }
       }
     }
   ],
