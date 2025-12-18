@@ -5,13 +5,46 @@ import { PluginRegistry, PluginLoader } from './plugins';
 import { SSHService } from './services/ssh';
 import { CommandGuardService } from './services/command-guard-service';
 import { ProxyService } from './services/proxy-service';
+import { getUsageTracker, UsageTracker } from './services/usage-tracker';
 import { handlePluginsCommand } from './cli/plugins';
 import { handleInstallCommand } from './cli/install';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 
-function showHelp(registry?: PluginRegistry) {
-  console.log(`
+function showHelp(registry?: PluginRegistry, usageTracker?: UsageTracker) {
+  // Show most used commands first if we have usage data
+  if (usageTracker && registry && usageTracker.hasEnoughData(3, 5)) {
+    const topCommands = usageTracker.getTopCommands(5);
+
+    if (topCommands.length > 0) {
+      console.log(`
+VSSH - SSH Command Proxy with Safety Guards
+
+MOST USED COMMANDS:`);
+
+      for (const { name, count } of topCommands) {
+        const command = registry.getCommand(name);
+        if (command) {
+          const usage = command.usage || `vssh ${name}`;
+          const shortUsage = usage.length > 35 ? usage.slice(0, 32) + '...' : usage;
+          console.log(`  ${shortUsage.padEnd(36)} # ${command.description} (${count})`);
+        } else {
+          // Fallback for non-plugin commands (raw SSH commands)
+          console.log(`  vssh ${name.padEnd(31)} # (${count} uses)`);
+        }
+      }
+
+      console.log(`
+QUICK START:
+  vssh <command>              # Execute any command on remote server (SSH-compatible output)
+  vssh "docker ps -a"         # Use quotes for complex commands
+  vssh --json "docker ps"     # Get structured JSON output for automation
+  vssh --setup                # Configure SSH connection
+  vssh --help                 # Show this help`);
+    }
+  } else {
+    // No usage data yet - show standard intro
+    console.log(`
 VSSH - SSH Command Proxy with Safety Guards
 
 QUICK START:
@@ -19,8 +52,10 @@ QUICK START:
   vssh "docker ps -a"         # Use quotes for complex commands
   vssh --json "docker ps"     # Get structured JSON output for automation
   vssh --setup                # Configure SSH connection
-  vssh --help                 # Show this help
+  vssh --help                 # Show this help`);
+  }
 
+  console.log(`
 OUTPUT MODES:
   vssh <command>              # Default: SSH-compatible output (no metadata)
   vssh --json <command>       # Structured JSON with metadata for automation
@@ -211,7 +246,10 @@ async function main() {
   const proxyService = new ProxyService(config, sshService, commandGuard);
   proxyService.setLocalMode(isLocalExecution);
   const registry = new PluginRegistry(sshService, commandGuard, config, logger, proxyService, isLocalExecution);
-  
+
+  // Initialize usage tracker for command statistics
+  const usageTracker = getUsageTracker();
+
   // Apply plugin command guard extensions
   commandGuard.addExtensions(registry.getCommandGuardExtensions());
   
@@ -229,7 +267,7 @@ async function main() {
   
   // Handle help with loaded plugins
   if (isHelpCommand) {
-    showHelp(registry);
+    showHelp(registry, usageTracker);
     process.exit(0);
   }
   
@@ -250,9 +288,14 @@ async function main() {
         _: args,
         ...parseFlags(args.slice(1))
       };
-      
+
       // Use the registry's executeCommand method which handles dependency checking
       await registry.executeCommand(commandName, parsedArgs);
+
+      // Track successful command usage
+      const plugin = registry.getCommandPlugin(commandName);
+      usageTracker.trackCommand(command.name, plugin?.name);
+      usageTracker.save();
     } catch (error: any) {
       console.error(`❌ ${error.message}`);
       process.exit(1);

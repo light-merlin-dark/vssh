@@ -17,6 +17,12 @@ const envSchema = z.object({
   VSSH_KEY_PATH: z.string().optional().default(`${process.env.HOME}/.ssh/id_rsa`)
 });
 
+const usageSchema = z.object({
+  commands: z.record(z.number()).optional(),
+  plugins: z.record(z.number()).optional(),
+  lastUpdated: z.string().optional()
+}).optional();
+
 const configSchema = z.object({
   host: z.string(),
   user: z.string(),
@@ -27,8 +33,15 @@ const configSchema = z.object({
     enabled: z.array(z.string()).optional(),
     disabled: z.array(z.string()).optional(),
     config: z.record(z.any()).optional()
-  }).optional()
+  }).optional(),
+  usage: usageSchema
 });
+
+export interface UsageData {
+  commands?: Record<string, number>;
+  plugins?: Record<string, number>;
+  lastUpdated?: string;
+}
 
 export interface Config {
   host: string;
@@ -41,6 +54,7 @@ export interface Config {
     disabled?: string[];
     config?: Record<string, any>;
   };
+  usage?: UsageData;
 }
 
 export function saveConfig(config: Config): void {

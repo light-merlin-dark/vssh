@@ -7,6 +7,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.0] - 2025-12-17
+
+### Added
+- **Usage Tracking & Intelligent Help Promotion**: AI-optimized help system
+  - **MOST USED COMMANDS section**: Automatically promotes frequently-used commands to top of help output
+  - **Lightweight tracking**: Command and plugin usage stored in config.json (no record growth)
+  - **Smart thresholds**: Only shows "MOST USED" after sufficient usage data (3+ commands, 5+ total uses)
+  - **AI Agent optimization**: Reduces context window usage by surfacing relevant commands first
+  - **New UsageTracker service**: Tracks command execution with plugin attribution
+  - **Examples**:
+    ```bash
+    vssh --help           # Shows MOST USED COMMANDS at top if usage data exists
+    vssh ldc              # Tracked: list-docker-containers, plugin: docker
+    ```
+
+- **Coolify Dynamic Config Management**: Complete dynamic configuration workflow
+  - `update-dynamic-config` (udc) - Upload local YAML files to Coolify's Traefik proxy
+    - YAML syntax validation before upload
+    - Auto-detects new vs update operations
+    - Custom naming with `--name` flag
+    - Traefik auto-reloads on file change
+  - `view-dynamic-config` (vdc) - View individual dynamic configs by name
+    - Fuzzy matching for config names
+    - Shows full path after content
+  - **Workflow example**:
+    ```bash
+    vssh udc ./my-service.yaml           # Upload config (uses filename)
+    vssh udc ./config.yaml --name proxy  # Upload with custom name
+    vssh vdc my-service                  # View specific config
+    vssh lcd                             # List all configs
+    ```
+
+### Dependencies
+- Added `yaml` package for YAML syntax validation in dynamic config uploads
+
+## [1.7.6] - 2025-11-06
+
 ### Added
 - **SSH-Compatible Output System**: Strategic refinement to honor "SSH with safety guards" promise
   - **SSH-compatible by default**: Commands return standard SSH output for zero-friction adoption

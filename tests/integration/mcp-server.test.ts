@@ -4,7 +4,7 @@ import { MCPClient } from '../../src/utils/call-mcp';
 
 describe('MCP Server Integration', () => {
   let client: MCPClient;
-  const mcpServerPath = path.join(__dirname, '../../dist/src/mcp-server.js');
+  const mcpServerPath = path.join(__dirname, '../../dist/mcp-server.js');
 
   beforeAll(async () => {
     client = new MCPClient('node', [mcpServerPath]);
