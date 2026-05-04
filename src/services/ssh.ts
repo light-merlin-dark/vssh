@@ -1,10 +1,20 @@
 import { Client } from 'ssh2';
-import { readFileSync, createReadStream, createWriteStream } from 'fs';
-import { stat } from 'fs/promises';
+import { readFileSync } from 'fs';
 import type { Config } from '../config';
 
 export class SSHService {
   constructor(private config: Config) {}
+
+  private getConnectionOptions() {
+    return {
+      host: this.config.host,
+      username: this.config.user,
+      privateKey: readFileSync(this.config.keyPath),
+      keepaliveInterval: 10_000,
+      keepaliveCountMax: 3,
+      readyTimeout: 30_000,
+    };
+  }
 
   async executeCommand(command: string): Promise<string> {
     return new Promise((resolve, reject) => {
@@ -27,93 +37,79 @@ export class SSHService {
           });
         })
         .on('error', reject)
-        .connect({
-          host: this.config.host,
-          username: this.config.user,
-          privateKey: readFileSync(this.config.keyPath)
-        });
+        .connect(this.getConnectionOptions());
     });
   }
 
   async uploadFile(localPath: string, remotePath: string): Promise<void> {
     return new Promise((resolve, reject) => {
       const conn = new Client();
+      let settled = false;
+
+      const finish = (error?: Error) => {
+        if (settled) return;
+        settled = true;
+        conn.end();
+        if (error) {
+          reject(error);
+          return;
+        }
+        resolve();
+      };
+
       conn
         .on('ready', () => {
           conn.sftp((err, sftp) => {
             if (err) {
-              conn.end();
-              return reject(err);
+              finish(err);
+              return;
             }
 
-            const readStream = createReadStream(localPath);
-            const writeStream = sftp.createWriteStream(remotePath);
-
-            writeStream.on('close', () => {
-              conn.end();
-              resolve();
+            sftp.fastPut(localPath, remotePath, (putError) => {
+              finish(putError ?? undefined);
             });
-
-            writeStream.on('error', (err: Error) => {
-              conn.end();
-              reject(err);
-            });
-
-            readStream.on('error', (err: Error) => {
-              conn.end();
-              reject(err);
-            });
-
-            readStream.pipe(writeStream);
           });
         })
-        .on('error', reject)
-        .connect({
-          host: this.config.host,
-          username: this.config.user,
-          privateKey: readFileSync(this.config.keyPath)
-        });
+        .on('error', (error) => {
+          finish(error);
+        })
+        .connect(this.getConnectionOptions());
     });
   }
 
   async downloadFile(remotePath: string, localPath: string): Promise<void> {
     return new Promise((resolve, reject) => {
       const conn = new Client();
+      let settled = false;
+
+      const finish = (error?: Error) => {
+        if (settled) return;
+        settled = true;
+        conn.end();
+        if (error) {
+          reject(error);
+          return;
+        }
+        resolve();
+      };
+
       conn
         .on('ready', () => {
           conn.sftp((err, sftp) => {
             if (err) {
-              conn.end();
-              return reject(err);
+              finish(err);
+              return;
             }
 
-            const readStream = sftp.createReadStream(remotePath);
-            const writeStream = createWriteStream(localPath);
-
-            writeStream.on('close', () => {
-              conn.end();
-              resolve();
+            sftp.fastGet(remotePath, localPath, (getError) => {
+              finish(getError ?? undefined);
             });
-
-            writeStream.on('error', (err: Error) => {
-              conn.end();
-              reject(err);
-            });
-
-            readStream.on('error', (err: Error) => {
-              conn.end();
-              reject(err);
-            });
-
-            readStream.pipe(writeStream);
           });
         })
-        .on('error', reject)
-        .connect({
-          host: this.config.host,
-          username: this.config.user,
-          privateKey: readFileSync(this.config.keyPath)
-        });
+        .on('error', (error) => {
+          finish(error);
+        })
+        .connect(this.getConnectionOptions());
     });
   }
 
@@ -140,11 +136,7 @@ export class SSHService {
           });
         })
         .on('error', reject)
-        .connect({
-          host: this.config.host,
-          username: this.config.user,
-          privateKey: readFileSync(this.config.keyPath)
-        });
+        .connect(this.getConnectionOptions());
     });
   }
 }

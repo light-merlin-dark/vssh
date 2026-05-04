@@ -1,0 +1,4 @@
+interface:
+  display_name: "VSSH"
+  short_description: "Operate remote infra with vssh safely"
+  default_prompt: "Use $vssh to operate the Hetzner production server through vssh safely and efficiently."
