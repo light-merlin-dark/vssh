@@ -42,6 +42,7 @@ docs/
 !docs/
 docs/*
 !docs/plan.md
+!docs/testing.md
 !docs/handoffs/
 docs/handoffs/*
 !docs/handoffs/2026-07-19-session-daemon-and-upload-mode.md

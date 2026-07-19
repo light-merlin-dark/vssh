@@ -8,7 +8,7 @@ Release VSSH 2 as a dependable, portable CLI: a guarded shortcut to native OpenS
 
 ## Ground Truth
 
-- The VSSH 2 implementation is clean and pushed on `main` at `ea0795d`. It is
+- The VSSH 2 implementation is clean and pushed on `main`. It is
   installed locally as 2.0.0, but has not been tagged or published; npm
   `latest` remains 1.8.3.
 - Transport is native `ssh`/`scp`, with normal host verification and short-lived OpenSSH control connection reuse.
@@ -34,13 +34,15 @@ Release VSSH 2 as a dependable, portable CLI: a guarded shortcut to native OpenS
   compatibility path. Direct 600/700 mode proof and the SEOReport env proof
   pass; native connection reuse reduced the four-component env render from
   10.89s to 3.01s.
-- README, changelog, CLI help, command metadata, project guidance, and operator skills describe the reduced surface consistently.
+- README, changelog, CLI help, command metadata, project guidance, operator skills, and the public testing strategy describe the reduced surface consistently.
+- The public consumer has been reduced to an intentionally authored static product surface plus centralized Stack Admin, analytics, SEO, settings, auth, and errors. StackHTMX, public accounts, tenant-local admin, OSS content automation, and unused plugin routes are removed locally.
 
 ## Release Follow-up
 
-1. Review the breaking-change release notes and publish `@light-merlin-dark/vssh@2.0.0` only with explicit release approval; then tag and push the corresponding commit.
-2. Update public homepage copy in the separately controlled `/Users/merlin/_dev/vssh-public` project. Its `AGENTS.md` positioning contract is updated locally, but that repository already contains unrelated dirty changes; isolate its eventual commit.
-3. Observe real fleet latency and failure telemetry after rollout. Revisit a custom session daemon only if native OpenSSH control reuse is measurably insufficient.
+1. Restore npm authentication, publish `@light-merlin-dark/vssh@2.0.0` with release approval, then tag and push the corresponding commit. npm `latest` remains 1.8.3 until this happens.
+2. Review `http://vssh.localhost`; Browser Gateway visual acceptance is currently blocked by a Chromium-session 503 even though the VSSH connector and all local services are healthy. Rerun the checked-in visual flows when the worker lane recovers.
+3. After local approval, purchase `vssh.io`, provision the source-controlled production edge contract, and cut over through `prod`; do not change DNS manually.
+4. Observe real fleet latency and failure telemetry after rollout. Revisit a custom session daemon only if native OpenSSH control reuse is measurably insufficient.
 
 ## Product Boundary
 
