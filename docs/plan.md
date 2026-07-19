@@ -19,6 +19,12 @@ Release VSSH 2 as a dependable, portable CLI: a guarded shortcut to native OpenS
 - Audit logs contain only owner-readable bounded metadata, never command text or output.
 - The npm package has zero runtime dependencies.
 - Release verification is local and explicit; this project does not use GitHub Actions.
+- The public root, web, and API consumers are clean and pushed on `main` with
+  dev-control v2, stable `.localhost` routing, centralized Stack Admin, and the
+  intentional five-plugin `vssh-public` profile.
+- The shared `stack guide` now recognizes those current contracts, registry
+  installs, and source-controlled Admin handoff. VSSH passes it with
+  `success: true`, `strictSuccess: true`, and no blocking findings.
 - The measured session-daemon handoff is reconciled in `docs/handoffs/2026-07-19-session-daemon-and-upload-mode.md`: native ControlMaster reuse replaces the proposed custom daemon, while `upload --mode` is retained.
 
 ## Verified
@@ -35,7 +41,7 @@ Release VSSH 2 as a dependable, portable CLI: a guarded shortcut to native OpenS
   pass; native connection reuse reduced the four-component env render from
   10.89s to 3.01s.
 - README, changelog, CLI help, command metadata, project guidance, operator skills, and the public testing strategy describe the reduced surface consistently.
-- The public consumer has been reduced to an intentionally authored static product surface plus centralized Stack Admin, analytics, SEO, settings, auth, and errors. StackHTMX, public accounts, tenant-local admin, OSS content automation, and unused plugin routes are removed locally.
+- The public consumer has been reduced and pushed as an intentionally authored static product surface plus centralized Stack Admin, analytics, SEO, settings, auth, and errors. StackHTMX, public accounts, tenant-local admin, OSS content automation, and unused plugin routes are removed.
 
 ## Release Follow-up
 
