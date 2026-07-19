@@ -56,7 +56,7 @@ npm install -g @light-merlin-dark/vssh
 vssh --setup       # save the host, user, identity, and port
 vssh doctor        # verify the complete connection path
 
-vssh uptime
+vssh uptime       # run uptime on the configured remote host
 vssh --json 'systemctl is-active api'
 vssh upload --mode 600 ./app.env /etc/app/app.env
 ```
@@ -195,6 +195,13 @@ Environment variables are also supported:
 - `VSSH_PORT`
 - `VSSH_HOME` and `VSSH_CONFIG_PATH` for isolated environments
 
+For example, override the saved target for one command without changing the
+configuration file:
+
+```bash
+VSSH_HOST=staging.example.com VSSH_USER=deploy vssh uptime
+```
+
 Example configuration:
 
 ```json
@@ -214,6 +221,10 @@ The host may be an OpenSSH alias. If `user` or `keyPath` is omitted, OpenSSH res
 ## Safety and audit behavior
 
 VSSH blocks recognizable forms of a small set of catastrophic operations, including broad root deletion, direct disk formatting/writes, destructive Docker volume pruning, firewall flushing, and shutdown commands. Suspicious download-and-execute pipelines produce warnings.
+
+The exact current patterns live in
+[`command-guard.ts`](src/services/command-guard.ts). They are deliberately
+narrow and are not user-customizable.
 
 These checks are guardrails, not a shell parser, policy engine, authorization boundary, or sandbox. Review commands with the same care you would use with `ssh`.
 

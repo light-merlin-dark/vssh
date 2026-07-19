@@ -58,6 +58,18 @@ Release VSSH 2 as a dependable, portable CLI: a guarded shortcut to native OpenS
   pass; native connection reuse reduced the four-component env render from
   10.89s to 3.01s.
 - README, changelog, CLI help, command metadata, project guidance, operator skills, and the public testing strategy describe the reduced surface consistently.
+- The public README now leads with the cold-developer mental model: native
+  OpenSSH underneath, the exact automation value above it, when plain `ssh` is
+  the better choice, a side-by-side first command, four core operations,
+  failure semantics, and the deliberately narrow guardrail boundary. GitHub's
+  stale MCP/plugin description and topics are corrected, and the repository
+  links to `https://vssh.io`.
+- A blind Eval Gateway review used two generic developer archetypes at desktop
+  and mobile. All four independently understood VSSH, distinguished it from
+  plain SSH, and chose install plus setup as the first action; the accepted
+  panel mean was 70 at $0.0209. Its supported follow-up—exact guard patterns,
+  clearer failure handling, and an environment-override example—is now in the
+  README.
 - The public consumer has been reduced and pushed as an intentionally authored static product surface plus centralized Stack Admin, analytics, SEO, settings, auth, and errors. StackHTMX, public accounts, tenant-local admin, OSS content automation, and unused plugin routes are removed.
 - DNS incident follow-up is grounded: the first launch attempt populated the
   local router's negative cache before the new apex record existed. Private
