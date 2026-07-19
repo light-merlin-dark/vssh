@@ -30,6 +30,10 @@ Release VSSH 2 as a dependable, portable CLI: a guarded shortcut to native OpenS
 - The public root, web, and API consumers are clean and pushed on `main` with
   dev-control v2, stable `.localhost` routing, centralized Stack Admin, and the
   intentional five-plugin `vssh-public` profile.
+- `https://vssh.io` is live through the managed Cloudflare/Prod Control cutover.
+  The canonical site, same-origin API, centralized admin hosts, `www` redirect,
+  legacy-host redirect, analytics, and SEOReport partner badge all pass remote
+  production Browser Gateway acceptance on desktop and mobile.
 - The shared `stack guide` now recognizes those current contracts, registry
   installs, and source-controlled Admin handoff. VSSH passes it with
   `success: true`, `strictSuccess: true`, and no blocking findings.
@@ -58,9 +62,9 @@ Release VSSH 2 as a dependable, portable CLI: a guarded shortcut to native OpenS
 
 ## Release Follow-up
 
-1. Review `http://vssh.localhost`. Browser Gateway desktop/mobile acceptance and the final blind Eval Gateway packet are green with no deterministic layout defects or blocker/major findings.
-2. `vssh.io` is purchased, registered in Cloudflare, and delegation is proven through authoritative plus public recursive DNS. Prod Control contains the exact apex/`www`/admin edge contract and snapshot rollback; crawler-safe WAF is applied, but DNS remains empty. Provision the centralized-admin secret boundary, prove exact release candidates, and cut over only through the journaled `prod app cutover vssh` path.
-3. Observe real fleet latency and failure telemetry after rollout. Revisit a custom session daemon only if native OpenSSH control reuse is measurably insufficient.
+1. Observe real fleet latency and failure telemetry after rollout. Revisit a custom session daemon only if native OpenSSH control reuse is measurably insufficient.
+2. Extend the managed Cloudflare zone-settings contract before changing edge security settings; the application already redirects HTTP, while the zone still reports `always_use_https=off` and `min_tls_version=1.0`.
+3. Measure the public API's eager five-plugin startup cost and move it to the current lazy runtime-descriptor pattern before deciding whether any private operator capability should be removed.
 
 ## Product Boundary
 
