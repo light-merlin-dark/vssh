@@ -1,37 +1,80 @@
 # VSSH
 
-## SSH is the transport. VSSH is the operating contract around it.
+**Native SSH underneath. Guardrails and predictable automation output on top.**
 
-OpenSSH is already excellent at secure remote execution. VSSH keeps it intact and adds the pieces agents and automation otherwise have to rebuild in every project: preflight guardrails, structured results, privacy-safe audit metadata, repeatable diagnostics, and file transfer with permission setting.
+VSSH runs ordinary remote shell commands through the `ssh` already installed on
+your machine and transfers files through `scp`. It adds a small layer for
+scripts and agents: one default target, checks for a short list of catastrophic
+commands, stable JSON results, connection diagnostics, private audit metadata,
+and file transfers that can set permissions.
 
-VSSH does not introduce a second remote command language. The command after `vssh` is still the Linux, Docker, systemd, or shell command you already know.
+If you know SSH, you already know how to run commands with VSSH:
 
-### What VSSH adds to normal SSH
+```bash
+# OpenSSH
+ssh deploy@prod 'systemctl is-active api'
 
-| Need | Plain `ssh` / `scp` | VSSH |
-|---|---|---|
-| Agent-readable results | You write parsing and error wrappers | One stable `--json` result with separate stdout, stderr, exit code, timing, signal, and timeout state |
-| Catastrophic-command checks | The command is sent as written | Recognizable root deletion, disk writes, destructive volume cleanup, firewall flushes, and shutdown commands are blocked before connection |
-| Operational audit trail | Add shell history or logging yourself | Owner-only metadata with command hash and outcome; command text and output are never stored |
-| Upload plus permissions | Coordinate `scp` and a second `ssh chmod` call | `upload --mode <octal>` is one operation and fails if either phase fails |
-| Connection readiness | Diagnose binaries, key paths, config, and reachability separately | `vssh doctor` checks the complete path, including a real connection |
-| Repeated-call latency | Configure multiplexing yourself | Short-lived OpenSSH control reuse is enabled by default |
+# VSSH after one-time setup
+vssh 'systemctl is-active api'
+```
+
+The quoted text is not a VSSH-specific language. It is the same remote shell
+command you would give to `ssh`: Linux, Docker, systemd, and shell commands all
+remain unchanged.
+
+## When VSSH earns an install
+
+Use plain `ssh` when you want an interactive shell or a one-off command and do
+not need an automation contract.
+
+Use VSSH when a script or agent repeatedly operates one remote target and you
+want these behaviors without rebuilding them in every project:
+
+- **One JSON result:** stdout, stderr, exit code, duration, timeout state, and a
+  signal when applicable have a stable machine-readable shape.
+- **Catastrophic-command checks:** recognizable root deletion, direct disk
+  writes, destructive Docker volume cleanup, firewall flushes, and shutdown
+  commands are blocked before a connection is opened.
+- **Real diagnostics:** `vssh doctor` checks the local tools, configuration,
+  identity path, and a live SSH connection.
+- **Simple transfers:** `upload`, `upload --mode`, and `download` use native
+  `scp`; permission setting can be part of the upload operation.
+- **Private audit metadata:** VSSH records a command hash and outcome, never the
+  command text, output, credentials, or file contents.
+- **Faster repeated calls:** a short-lived OpenSSH control connection is reused
+  when possible.
 
 Underneath, VSSH delegates transport, host verification, `known_hosts`, SSH-agent access, streaming, signals, and remote exit behavior to your native OpenSSH client.
 
-## Thirty-second start
+VSSH is not a replacement SSH protocol, a sandbox, an MCP server, a plugin
+platform, or a Docker-specific wrapper.
+
+## Quick start
 
 ```bash
 npm install -g @light-merlin-dark/vssh
-vssh --setup
-vssh doctor
+vssh --setup       # save the host, user, identity, and port
+vssh doctor        # verify the complete connection path
 
-vssh 'docker ps --format "table {{.Names}}\t{{.Status}}"'
-vssh upload ./release.tar.gz /tmp/release.tar.gz
+vssh uptime
 vssh --json 'systemctl is-active api'
+vssh upload --mode 600 ./app.env /etc/app/app.env
 ```
 
-That is the product boundary: native SSH behavior plus a small, dependable automation layer. VSSH is intentionally not an SSH protocol, MCP server, plugin platform, Docker wrapper, or production control plane.
+Configuration is stored at `~/.vssh/config.json` with owner-only permissions.
+
+## The four operations to remember
+
+```bash
+vssh '<remote command>'                  # run through native ssh
+vssh --json '<remote command>'           # capture one structured result
+vssh upload <local> <remote>             # send through native scp
+vssh download <remote> <local>           # retrieve through native scp
+vssh doctor                              # diagnose setup and connectivity
+```
+
+`docker`, `systemctl`, `journalctl`, `find`, and similar names in the examples
+below are programs on the remote machine—not VSSH subcommands.
 
 ## Requirements
 
@@ -40,7 +83,7 @@ That is the product boundary: native SSH behavior plus a small, dependable autom
 - OpenSSH `ssh` and `scp`
 - Key-based access, an `ssh-agent`, or a working OpenSSH host alias
 
-Configuration is stored at `~/.vssh/config.json` with owner-only permissions.
+Windows is not currently supported.
 
 ## Run commands
 
@@ -98,7 +141,9 @@ vssh --json --timeout 30 'systemctl is-active api'
 }
 ```
 
-JSON mode is bounded to 16 MiB of captured output. Use raw mode for large or unbounded streams.
+JSON mode is bounded to 16 MiB of captured output. If the combined captured
+output exceeds that limit, the command fails instead of returning a truncated
+result. Use raw mode for large or unbounded streams.
 
 ## Transfer files
 
