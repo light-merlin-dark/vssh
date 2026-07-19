@@ -1,266 +1,121 @@
 # VSSH Development Guide
 
-This project uses **bun** for development (faster, better DX) and **npm** for publishing (universal compatibility).
-
 ## Product Contract
 
-- Brand is `VSSH`; executable/package is `vssh`
-- Product framing is CLI-first, not MCP-first
-- MCP remains valuable, but should be presented as optional integration rather than the lead definition of the tool
-- Plugins are core product value, but public marketing should not open by listing the plugin inventory
+- Brand: `VSSH`
+- Package and executable: `@light-merlin-dark/vssh` / `vssh`
+- Product: a focused CLI for guarded remote execution and file transfer through native OpenSSH
+- VSSH is not an SSH protocol, MCP server, plugin platform, Docker wrapper, or production control plane
+- New functionality must earn its place in the core by being broadly reusable and materially better than a familiar raw SSH command
+- Prefer purpose-built higher-level operator CLIs; VSSH is the low-level remote shell and evidence path
 
-## Public Site Contract
+## Continuity
 
-- The public consumer lives at `/Users/merlin/_dev/vssh-public`
-- Public copy should stay grounded in this repo's real product surface, especially `README.md`
-- Avoid internal Stack/admin/operator language on public pages
-- Homepage copy and structure should stay intentionally controlled in the web app, not be auto-rewritten by AI workflows
-- If product positioning changes here, update `/Users/merlin/_dev/vssh-public/AGENTS.md` as part of the same work
+The active engineering handoff is `docs/plan.md`.
 
-## Prerequisites
+- Read it before starting work.
+- Keep it aligned with ground truth as work changes.
+- At session end, remove completed/stale detail and leave only actionable follow-up.
 
-- **Bun**: Install from https://bun.sh (required for development)
-- **Node.js 14+**: Required for end users (npm package compatibility)
-- **SSH key**: For testing remote connections
+## Runtime Contract
 
-## Quick Start
+VSSH 2 delegates transport to the local `ssh` and `scp` executables.
+
+Non-negotiable behavior:
+
+- Normal OpenSSH host verification and `known_hosts` policy remain intact.
+- Raw mode streams stdin/stdout/stderr and propagates the remote exit code.
+- JSON mode emits exactly one parseable result and is bounded in memory.
+- Signals and timeouts propagate predictably.
+- Repeated operations reuse an OpenSSH control connection when possible.
+- Audit logs never contain command text, command output, credentials, or file contents.
+- Safety checks are documented as guardrails, never a sandbox or authorization boundary.
+
+## Supported Surface
+
+Core:
+
+- `vssh '<command>'`
+- `vssh -c '<command>'`
+- `vssh --json '<command>'`
+- `vssh upload [--mode <octal>] <local> <remote>`
+- `vssh download <remote> <local>`
+- `vssh doctor`
+- `vssh config show`
+- `vssh commands --json`
+
+Compatibility-only:
+
+- Docker aliases: `dls`, `gdc`, `sdl`, `ldp`, `ldn`, `sdi`
+- Coolify aliases: `lcd`/`ldc`, `vdc`, `udc`, `gcp`
+- Remote edit: `ef` / `edit-file`
+- Local-mode migration: `lm` / `local-mode`
+
+Do not expand the compatibility layer or promote it in lead product copy. New examples should use familiar raw remote commands.
+
+Removed in VSSH 2:
+
+- `vssh-mcp` and MCP installation
+- Dynamic plugin loading and plugin management
+- Grafana discovery and encrypted plugin credentials
+- Usage-promoted help
+
+Reintroduction requires independent usage evidence and should normally be a separate package.
+
+## Development
+
+Bun is the development/test runner; npm is the publishing path.
 
 ```bash
-# Install dependencies
 bun install
-
-# Run CLI directly (development mode)
-bun run dev
-
-# Build for production
-bun run build
-
-# Test the built CLI
-./dist/src/index.js --help
+bun run dev --help
+npm run lint
+npm test
+npm run build
+npm run smoke
+npm run verify
+npm pack --dry-run
 ```
 
-## Development Workflow
+Requirements:
 
-### Running the CLI
-
-```bash
-# Direct execution (no build required)
-bun run src/index.ts --help
-bun run src/index.ts ls -la
-
-# Or use the dev script
-bun dev
-```
-
-### Testing
-
-```bash
-# Run all tests
-bun test
-
-# Run specific test suites
-bun test:unit          # Unit tests only
-bun test:integration   # Integration tests only
-bun test:plugins       # Plugin tests only
-
-# Run tests with coverage
-bun test:coverage
-
-# Test a specific plugin
-bun run test:plugin docker
-```
-
-### Building
-
-```bash
-# Build TypeScript to dist/
-bun run build
-
-# Type checking without emitting
-bun run lint
-```
-
-### File Transfers
-
-The file-transfer plugin supports automatic directory compression:
-
-**Upload directories:**
-- Detects directories automatically
-- Creates tar.gz locally
-- Uploads compressed archive
-- Extracts on server
-- Auto-cleanup
-
-**Download directories:**
-- Detects remote directories
-- Compresses on server (tar.gz)
-- Downloads archive
-- Extracts locally
-- Auto-cleanup
-
-```bash
-# Upload directory (auto-zips)
-bun run dev upload ./my-folder /var/www/
-
-# Download directory (auto-zips on server)
-bun run dev download /var/www/myapp ./local-copy/
-
-# Upload single file (no compression)
-bun run dev upload ./config.yml /etc/app/config.yml
-```
+- Node.js 18+
+- macOS or Linux
+- Native OpenSSH `ssh` and `scp`
 
 ## Project Structure
 
-```
+```text
 src/
-├── index.ts                  # CLI entry point
-├── mcp-server.ts             # MCP server entry point
-├── plugins/
-│   ├── builtin/
-│   │   ├── file-transfer/    # File upload/download with auto-zip
-│   │   ├── docker/           # Docker management
-│   │   ├── coolify/          # Coolify operations
-│   │   ├── grafana/          # Grafana dashboards
-│   │   └── file-editor/      # Remote file editing
-│   └── types.ts              # Plugin type definitions
+├── index.ts                    CLI parser and orchestration
+├── config.ts                   Config migration, persistence, overrides
+├── shell.ts                    POSIX argument reconstruction
+├── compatibility.ts            Bounded VSSH 1 compatibility commands
+├── edit-file.ts                Compatibility file-edit workflow
 ├── services/
-│   ├── ssh.ts                # SSH/SFTP operations
-│   ├── proxy-service.ts      # Command execution proxy
-│   └── command-guard.ts      # Safety guards
-└── config.ts                 # Configuration management
+│   ├── ssh.ts                  Native ssh/scp process execution
+│   ├── command-guard.ts        Catastrophic-command guardrails
+│   ├── command-guard-service.ts
+│   └── audit-log.ts            Content-free JSONL audit metadata
+└── types/index.ts
 ```
 
-## Plugin Development
+## Testing Rules
 
-Create a new plugin in `src/plugins/builtin/your-plugin/`:
+- Integration tests use fake `ssh`/`scp` executables and must cover stream separation, stdin, exit codes, timeout, guard blocking, JSON shape, audit privacy, and transfer argv.
+- Never make the ordinary test suite depend on a real server or the maintainer's `~/.vssh` state.
+- Build before package inspection so removed source cannot survive as stale `dist` files.
+- CI must pass on Node.js 18, 20, and 22 and production `npm audit` must be clean.
 
-```typescript
-// index.ts
-import type { VsshPlugin } from '../../types';
+## Release Rules
 
-export const yourPlugin: VsshPlugin = {
-  name: 'your-plugin',
-  version: '1.0.0',
-  description: 'Your plugin description',
+- Keep `README.md`, `CHANGELOG.md`, CLI help, `commands --json`, package metadata, and the operator skill consistent.
+- Run `npm run verify`, `npm audit --omit=dev`, and `npm pack --dry-run` before publishing.
+- Publishing uses npm; end users must not need Bun.
+- The package must have zero runtime npm dependencies unless a future dependency demonstrably replaces more complexity than it adds.
 
-  helpSummary: {
-    category: 'Your Category',
-    shortSummary: 'Brief description - cmd1, cmd2',
-    examples: [
-      'vssh cmd1  # Example usage'
-    ]
-  },
+## Public Site Contract
 
-  commands: [
-    {
-      name: 'your-command',
-      aliases: ['yc'],
-      description: 'Command description',
-      usage: 'vssh your-command [args]',
-      handler: async (context, args) => {
-        // Implementation
-      }
-    }
-  ]
-};
+The public consumer lives at `/Users/merlin/_dev/vssh-public`.
 
-export default yourPlugin;
-```
-
-Test your plugin:
-
-```bash
-# Enable the plugin
-bun run dev plugins enable your-plugin
-
-# Test the command
-bun run dev your-command
-
-# Run plugin tests
-bun test src/plugins/builtin/your-plugin/tests/
-```
-
-## Publishing
-
-Publishing uses **npm** to ensure universal compatibility:
-
-```bash
-# Build and publish to npm (users can install with npm)
-npm publish
-
-# Users install with:
-npm install -g @light-merlin-dark/vssh
-```
-
-**Why npm for publishing?**
-- Users don't need bun installed
-- Maximum compatibility across Node.js versions
-- Standard npm registry workflow
-
-## Important Notes
-
-### Default Enabled Plugins
-
-The following plugins are enabled by default:
-- `file-transfer` - Upload/download with auto-zip for directories
-- `docker` - Docker container management
-- `coolify` - Coolify operations
-
-Disabled by default:
-- `grafana` - Requires auto-discovery on first use
-
-### TypeScript Configuration
-
-- Source files: `src/`
-- Test files: Excluded from build (`**/*.test.ts`)
-- Output: `dist/`
-- Use `.ts` imports (never `.js` in TypeScript projects)
-
-### Safety Guards
-
-All commands go through safety checks:
-- Blocks destructive operations (`rm -rf /`, `dd`, etc.)
-- Logs all commands to `~/.vssh/data/logs/`
-- Plugin-specific guards can be added
-
-### Development Tips
-
-```bash
-# Fast iteration with bun
-bun run src/index.ts upload ./test /tmp/test
-
-# Build and test as end-user would see it
-bun run build && ./dist/src/index.js --help
-
-# Check for type errors
-bun run lint
-
-# Run specific test file
-bun test src/plugins/builtin/docker/tests/docker.test.ts
-```
-
-## Troubleshooting
-
-**"Module not found" errors:**
-- Ensure you're using `.ts` extensions in imports (not `.js`)
-- Run `bun install` to ensure dependencies are installed
-
-**SSH connection issues:**
-- Verify SSH key exists: `ls ~/.ssh/`
-- Test SSH manually: `ssh user@host`
-- Run setup: `bun run dev --setup`
-
-**File transfer failures:**
-- Check disk space on both local and remote
-- Verify remote directory exists: `bun run dev ls /path/to/dir`
-- Check permissions on destination
-
-## Performance
-
-Bun is significantly faster than Node.js for development:
-- **Startup**: ~3x faster
-- **TypeScript execution**: No compilation delay
-- **Test execution**: ~2-5x faster
-- **Package installation**: ~10-20x faster
-
-This is why we use bun for development while publishing to npm for users.
+When product positioning changes here, update its `AGENTS.md` in the same work. Homepage copy and structure remain intentionally controlled in the public app; do not auto-rewrite or deploy it as a side effect of CLI work.

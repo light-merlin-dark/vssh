@@ -1,0 +1,12 @@
+#!/usr/bin/env node
+const fs = require('fs');
+const args = process.argv.slice(2);
+
+if (args.includes('-V')) {
+  process.stderr.write('usage: scp source target\n');
+  process.exit(1);
+}
+if (process.env.FAKE_SCP_LOG) {
+  fs.appendFileSync(process.env.FAKE_SCP_LOG, `${JSON.stringify(args)}\n`);
+}
+process.exit(Number(process.env.FAKE_SCP_EXIT ?? 0));

@@ -1,23 +1,17 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
+    "target": "ES2022",
     "module": "commonjs",
     "moduleResolution": "node",
-    "lib": ["ES2020"],
+    "lib": ["ES2022"],
     "rootDir": "./src",
     "outDir": "dist",
-    "baseUrl": ".",
-    "paths": {
-      "@vssh/test-utils": ["./tests/test-utils/index.ts"],
-      "@vssh/test-utils/*": ["./tests/test-utils/*"]
-    },
     "types": ["node"],
     "strict": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true,
     "isolatedModules": true,
     "declaration": true,
     "declarationMap": true,
@@ -27,5 +21,5 @@
     "noEmitOnError": true
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist"]
+  "exclude": ["node_modules", "dist", "tests"]
 }

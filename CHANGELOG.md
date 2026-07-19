@@ -5,7 +5,48 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [2.0.0] - Unreleased
+
+### Changed
+
+- Rebuilt VSSH around the native `ssh` and `scp` executables.
+- Raw mode now streams stdin, stdout, and stderr and propagates the real remote exit code and signal.
+- Added OpenSSH connection reuse with a 60-second default `ControlPersist` window.
+- Replaced directory archive staging with native recursive `scp` transfers.
+- Made JSON output a single stable result containing stdout, stderr, exit status, duration, signal, timeout state, and transport.
+- Raised the supported runtime to Node.js 18+ and reduced the package to zero runtime npm dependencies.
+- Promoted `upload` and `download` from plugins to core commands.
+- Added `upload --mode <octal>` so copy and permission changes share the reused connection and fail as one operation.
+- Retained the most-used Docker, Coolify, and file-edit aliases as a compact compatibility layer rather than a plugin system.
+
+### Added
+
+- `vssh doctor` / `vssh doctor --json` for executable, config, identity, and connection checks.
+- `vssh commands --json` for agent-readable command discovery.
+- `--timeout`, `--tty`, `--host`, `--user`, `--identity`, `--port`, `--remote`, and `--no-audit` options.
+- CI across Node.js 18, 20, and 22 with test, build, package, and production-audit gates.
+
+### Security
+
+- Restored normal OpenSSH host identity verification; the removed `ssh2` transport did not configure a host verifier.
+- Removed vulnerable MCP SDK dependency paths and all runtime npm dependencies.
+- Replaced command/output logs with owner-only, bounded metadata records. Command text and output are no longer persisted.
+- Added safer argv handling for SSH/SCP and bounded JSON capture.
+
+### Removed
+
+- The `vssh-mcp` binary and `vssh install` MCP setup flow.
+- The general plugin runtime and plugin management commands.
+- Grafana discovery commands, encrypted plugin credential storage, and usage-promoted help.
+- Checked-in npm package tarballs and stale development scripts from the published surface.
+
+### Breaking
+
+- VSSH 2 requires native OpenSSH and Node.js 18 or newer on macOS or Linux.
+- JSON fields now use `exitCode`, `durationMs`, `stdout`, and `stderr`; failures preserve their actual exit code.
+- `plugins`, `install`, `lgd`, and `vgd` return migration errors instead of invoking removed subsystems.
+
+## [Unreleased - 1.x]
 
 ## [1.8.3] - 2025-12-17
 

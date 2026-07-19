@@ -1,109 +1,35 @@
-.PHONY: install build dev clean publish test lint help login check-auth whoami version patch minor major pre-publish push release
+.PHONY: help install dev lint test build verify pack publish
 
-# Load environment variables from .env if it exists
--include .env
-export
-
-# Default target
 help:
-	@echo "Available commands:"
-	@echo ""
-	@echo "Development:"
-	@echo "  make install    - Install dependencies"
-	@echo "  make build      - Build the TypeScript project"
-	@echo "  make dev        - Run in development mode"
-	@echo "  make clean      - Clean build artifacts"
-	@echo "  make lint       - Run TypeScript type checking"
-	@echo "  make test       - Run tests"
-	@echo ""
-	@echo "NPM Registry:"
-	@echo "  make login      - Login to npm with token from .env"
-	@echo "  make check-auth - Check npm authentication status"
-	@echo "  make whoami     - Show current npm user"
-	@echo "  make publish    - Build and publish to npm registry"
-	@echo ""
-	@echo "Version Management:"
-	@echo "  make version    - Show current version"
-	@echo "  make patch      - Bump patch version (1.0.0 -> 1.0.1)"
-	@echo "  make minor      - Bump minor version (1.0.0 -> 1.1.0)"
-	@echo "  make major      - Bump major version (1.0.0 -> 2.0.0)"
-	@echo ""
-	@echo "Release Management:"
-	@echo "  make push       - Smart release: auto-version, commit, push, and publish"
-	@echo "  make release    - Alias for push"
+	@echo "install  Install development dependencies"
+	@echo "dev      Run the TypeScript CLI"
+	@echo "lint     Type-check without emitting"
+	@echo "test     Run unit and integration tests"
+	@echo "build    Compile the npm package"
+	@echo "verify   Run all release gates"
+	@echo "pack     Inspect the package contents"
+	@echo "publish  Publish after all release gates pass"
 
 install:
-	npm install
-
-build:
-	npm run build
+	bun install
 
 dev:
-	npm run dev
-
-clean:
-	rm -rf dist/
-	rm -rf node_modules/
-	rm -f *.log
-
-publish: build
-	npm publish --access public
-
-test:
-	npm test
+	bun run dev --help
 
 lint:
 	npm run lint
 
-# NPM Registry Commands
-login:
-	@if [ -z "$(NPM_ACCESS_TOKEN)" ]; then \
-		echo "Error: NPM_ACCESS_TOKEN not found in .env file"; \
-		exit 1; \
-	fi
-	@echo "//registry.npmjs.org/:_authToken=$(NPM_ACCESS_TOKEN)" > ~/.npmrc
-	@echo "Logged in to npm registry with token from .env"
+test:
+	npm test
 
-check-auth:
-	@npm whoami || echo "Not authenticated. Run 'make login' first."
+build:
+	npm run build
 
-whoami:
-	@npm whoami
+verify:
+	npm run verify
 
-# Version Management
-version:
-	@node -p "require('./package.json').version"
+pack: verify
+	npm pack --dry-run
 
-patch: build
-	npm version patch
-	@echo "Version bumped to $$(make version)"
-
-minor: build
-	npm version minor
-	@echo "Version bumped to $$(make version)"
-
-major: build
-	npm version major
-	@echo "Version bumped to $$(make version)"
-
-# Smart push: handles everything
-push: lint build test
-	@echo "🚀 Starting smart release process..."
-	@node scripts/smart-version.js
-	@echo "📝 Committing and pushing to GitHub..."
-	@m push
-	@echo "📦 Publishing to npm..."
-	@npm publish --access public
-	@echo "✅ Release complete!"
-
-# Alias for push
-release: push
-
-# Pre-publish check
-pre-publish: lint build test
-	@echo "Checking package before publish..."
-	@npm pack --dry-run
-	@echo ""
-	@echo "Package is ready to publish!"
-	@echo "Current version: $$(make version)"
-	@echo "Run 'make publish' to publish to npm"
+publish: verify
+	npm publish --access public

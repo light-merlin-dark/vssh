@@ -1,552 +1,205 @@
-```
-██╗   ██╗███████╗███████╗██╗  ██╗
-██║   ██║██╔════╝██╔════╝██║  ██║
-██║   ██║███████╗███████╗███████║
-╚██╗ ██╔╝╚════██║╚════██║██╔══██║
- ╚████╔╝ ███████║███████║██║  ██║
-  ╚═══╝  ╚══════╝╚══════╝╚═╝  ╚═╝
+# VSSH
 
-MCP-native SSH proxy for AI agents
-CLI & MCP Server • Plugin system • AI safety guards
-```
+VSSH is a small, guarded CLI for running commands and moving files through native OpenSSH.
 
-## Why?
-
-- Execute server commands without SSH syntax complexity
-- Plugin system extends functionality (File Transfer, Docker, Coolify, Grafana, File Editor)
-- Native file transfers with automatic directory compression (upload/download)
-- Safety guards prevent destructive operations (rm -rf /, dd, docker prune -af)
-- No quote escaping issues in AI permission systems
-- Audit trails logged to `~/.vssh/data/logs/`
-- MCP-native with tools exposed automatically
-
-## Model Context Protocol (MCP) Setup
-
-### Quick Start with Claude Code
 ```bash
-# Install vssh globally
+vssh 'docker ps --format "table {{.Names}}\t{{.Status}}"'
+vssh upload ./release.tar.gz /tmp/release.tar.gz
+vssh --json 'systemctl is-active api'
+```
+
+It is intentionally not a replacement SSH protocol, an MCP server, or a plugin platform. VSSH gives a frequently used SSH target a short, consistent command; adds guardrails against common catastrophic mistakes; preserves real SSH streaming and exit behavior; and offers one stable JSON envelope when automation needs it.
+
+## Why VSSH?
+
+- Native OpenSSH transport, host verification, agent support, and `known_hosts` policy
+- Live stdin, stdout, stderr, signals, and remote exit codes
+- Native `scp` uploads and downloads for files or directories
+- Reused SSH connections with a short `ControlPersist` window
+- A structured `--json` mode for agents and scripts
+- Bounded audit metadata that never stores command text or output
+- Zero runtime npm dependencies
+
+Agents already know SSH, Docker, systemd, and the Linux command line. VSSH keeps those skills useful instead of hiding them behind a second command language.
+
+## Requirements
+
+- macOS or Linux
+- Node.js 18 or newer
+- OpenSSH `ssh` and `scp`
+- Key-based access, an `ssh-agent`, or a working OpenSSH host alias
+
+## Install
+
+```bash
 npm install -g @light-merlin-dark/vssh
-
-# Install to Claude Code
-vssh install
-```
-
-### Available MCP Tools
-Once configured, AI agents gain access to:
-- `run_command` - Execute any SSH command with safety checks
-- `get_local_mode` - Check if commands execute locally or remotely
-- `set_local_mode` - Toggle between local and remote execution
-- `upload_file` - Upload files/directories with auto-zip (File Transfer plugin)
-- `download_file` - Download files/directories with auto-zip (File Transfer plugin)
-- `list_docker_containers` - List all containers (Docker plugin)
-- `show_docker_logs` - View container logs (Docker plugin)
-- `show_docker_info` - System information dashboard (Docker plugin)
-- `get_coolify_proxy_config` - Coolify configuration (Coolify plugin)
-- `update_dynamic_config` - Update/create dynamic configs (Coolify plugin)
-- `view_dynamic_config` - View specific dynamic config (Coolify plugin)
-- `list_coolify_dynamic_configs` - List all dynamic configs (Coolify plugin)
-- `list_grafana_dashboards` - List all Grafana dashboards (Grafana plugin)
-- `view_grafana_dashboard` - View dashboard details (Grafana plugin)
-- `edit_file` - Advanced file editing operations (File Editor plugin)
-- And many more plugin-based tools!
-
-## Key Features
-
-### Unified Command Execution
-All commands now execute through a centralized proxy system:
-- Consistent logging and timing for all operations
-- Plugin commands automatically use proxy pipeline
-- Toggle between local and remote execution modes
-- Perfect for development, testing, and production use
-
-### AI-Optimized Interface
-```bash
-# AI agents can use natural commands without complex quoting
-vssh docker ps
-vssh docker logs my-app --tail 50
-vssh 'ps aux | grep node'  # Single quotes for pipes
-
-# AI-friendly quoted syntax
-vssh "docker ps -a"         # Entire command in quotes
-vssh "ls -la /var/log"      # Perfect for AI permission patterns
-
-# No more struggling with SSH syntax
-# ❌ ssh user@host "docker exec -it container bash -c 'cat /etc/config'"
-# ✅ vssh docker exec container cat /etc/config
-```
-
-### Built-in Safety Guard
-Protects against accidentally destructive commands:
-```bash
-vssh rm -rf /              # ❌ Blocked!
-vssh dd if=/dev/zero of=/dev/sda  # ❌ Blocked!
-vssh docker system prune -af --volumes  # ❌ Blocked!
-```
-
-### Complete Audit Trail
-Every command and output is logged to `~/.vssh/data/logs/` for accountability and debugging.
-
-## Installation
-
-```bash
-# Install globally via npm
-npm install -g @light-merlin-dark/vssh
-
-# Run interactive setup
 vssh --setup
+vssh doctor
 ```
 
-### Prerequisites
-- Node.js 14.0.0 or higher
-- SSH key-based authentication
-- Target server with SSH access
+Configuration is stored at `~/.vssh/config.json` with owner-only permissions.
 
-## Quick Start
+## Run commands
 
-### First-Time Setup
-```bash
-vssh --setup
-```
-
-This interactive setup will:
-1. Detect available SSH keys on your system
-2. Ask you to select or specify an SSH key
-3. Configure your target server (hostname/IP)
-4. Save configuration to `~/.vssh/config.json`
-5. Enable default plugins (File Transfer, Docker, and Coolify)
-6. Generate encryption key for secure credential storage
-
-### Basic Usage
-
-#### Core Commands
-```bash
-# View comprehensive categorized help
-vssh --help                   # Shows all available commands by category
-
-# Run simple commands
-vssh ls -la
-vssh free -m
-
-# AI-friendly quoted syntax
-vssh "ls -la /var/log"       # Perfect for AI agents
-
-# Complex commands with pipes (use single quotes)
-vssh 'ps aux | grep node'
-```
-
-#### Plugin Commands
-```bash
-# File transfer plugin commands (enabled by default)
-vssh upload ./config.yml /etc/app/config.yml      # Upload single file
-vssh push ./my-folder /var/www/                   # Upload directory (auto-zips)
-vssh download /etc/app/config.yml ./config.yml    # Download single file
-vssh pull /var/www/myapp ./                       # Download directory (auto-zips)
-
-# Docker plugin commands (short aliases)
-vssh ldc                      # List docker containers
-vssh gdc myapp                # Get docker container
-vssh sdl web --tail 100       # Show docker logs
-vssh ldp                      # List docker ports
-vssh ldn                      # List docker networks
-vssh sdi                      # Show docker info
-
-# Coolify plugin commands
-vssh udc ./my-service.yaml    # Update/create dynamic config from local file
-vssh vdc my-service           # View a specific dynamic config
-vssh lcd                      # List all dynamic configs
-vssh gcp                      # Get coolify proxy config
-
-# Grafana plugin commands (auto-discovers on first use)
-vssh lgd                      # List grafana dashboards
-vssh vgd "metrics"            # View dashboard by name/search
-
-# File editor plugin commands
-vssh edit-file /etc/app.conf --search "localhost" --replace "example.com"
-vssh ef config.yml --regex "version: \d+" --with "version: 2"
-vssh ef script.sh --insert-at 0 --content "#!/bin/bash"
-vssh ef app.js --dry-run --edits '[{"type":"replace","search":"console.log","replace":"//console.log"}]'
-
-# Plugin management
-vssh plugins list             # List all plugins
-vssh plugins enable docker    # Enable a plugin
-vssh plugins info docker      # Show plugin details
-```
-
-## Plugin System
-
-vssh features a plugin architecture that extends functionality while maintaining safety and MCP compatibility.
-
-### Built-in Plugins
-
-#### File Transfer Plugin
-Native SFTP file transfers with intelligent directory handling:
-- `upload` (push, put) - Upload files or directories to server
-- `download` (pull, get) - Download files or directories from server
-- **Automatic directory compression**:
-  - Detects directories automatically
-  - Creates tar.gz archives on-the-fly
-  - Extracts after transfer
-  - Auto-cleanup of temporary archives
-- Progress indicators and file size reporting
-- Works seamlessly with both single files and entire directory trees
-- Perfect for deploying code, backing up data, or syncing configurations
-
-#### Docker Plugin
-Comprehensive Docker management commands:
-- `list-docker-containers` (ldc) - List all containers
-- `get-docker-container` (gdc) - Find specific container
-- `show-docker-logs` (sdl) - View container logs
-- `list-docker-ports` (ldp) - Show port mappings
-- `list-docker-networks` (ldn) - List networks
-- `show-docker-info` (sdi) - System information dashboard
-
-#### Coolify Plugin
-Coolify-specific operations for managing Traefik proxy configurations:
-- `update-dynamic-config` (udc) - Update or create dynamic configs from local YAML files
-- `view-dynamic-config` (vdc) - View a specific dynamic configuration by name
-- `list-coolify-dynamic-configs` (lcd) - List all dynamic configurations
-- `get-coolify-proxy-config` (gcp) - Get main Traefik proxy configuration
-
-**Dynamic Config Workflow:**
-```bash
-# Create/edit your config locally
-vim ./my-service.yaml
-
-# Upload to Coolify (Traefik auto-reloads)
-vssh udc ./my-service.yaml
-
-# Verify it's deployed
-vssh vdc my-service
-```
-
-#### Grafana Plugin
-Grafana dashboard management with auto-discovery:
-- `list-grafana-dashboards` (lgd) - List all dashboards with auto-discovery
-- `view-grafana-dashboard` (vgd) - View dashboard details by name/search
-- Auto-discovers Grafana containers and credentials on first use
-- Securely stores credentials with AES-256-GCM encryption
-- No manual configuration required
-
-#### File Editor Plugin
-Advanced file editing capabilities:
-- `edit-file` (ef) - Edit files with sophisticated operations
-- Supports multiple edit types:
-  - Simple search and replace
-  - Regular expression replacements with flags
-  - Line insertion (by number, after/before pattern)
-  - Line deletion (single line or range)
-  - Complex multi-operation edits via JSON
-- Safety features:
-  - Automatic backup creation (`.vssh.backup`)
-  - Dry-run mode to preview changes
-  - System file protection
-- Works with both local and remote files
-
-### Managing Plugins
-```bash
-# List all plugins and their status
-vssh plugins list
-
-# Enable/disable plugins
-vssh plugins enable docker
-vssh plugins disable coolify
-
-# Get detailed plugin information
-vssh plugins info docker
-```
-
-### Plugin Benefits
-- **Modular**: Enable only what you need
-- **Safe**: Plugins can add custom safety guards
-- **MCP-Ready**: All plugin commands are exposed as MCP tools
-- **Extensible**: Easy to create custom plugins
-- **Smart Dependencies**: Automatic runtime dependency checking
-
-### Plugin Development
-
-Creating a vssh plugin is straightforward:
-
-```typescript
-import { VsshPlugin } from '@vssh/types';
-
-const myPlugin: VsshPlugin = {
-  name: 'my-plugin',
-  version: '1.0.0',
-  description: 'My custom plugin',
-
-  // Declare runtime dependencies
-  runtimeDependencies: [
-    {
-      command: 'kubectl',
-      displayName: 'Kubernetes CLI',
-      checkCommand: 'kubectl version --client',
-      installHint: 'Install kubectl from https://kubernetes.io/docs/tasks/tools/'
-    }
-  ],
-
-  // Plugin commands
-  commands: [
-    {
-      name: 'list-pods',
-      aliases: ['lp'],
-      description: 'List Kubernetes pods',
-      handler: async (context) => {
-        // Your command logic here
-      }
-    }
-  ],
-
-  // Optional MCP tool definitions
-  mcpTools: [
-    {
-      name: 'list_k8s_pods',
-      description: 'List all Kubernetes pods',
-      inputSchema: { type: 'object', properties: {} }
-    }
-  ],
-
-  // Optional safety guards
-  commandGuards: [
-    {
-      category: 'kubernetes',
-      patterns: [/kubectl\s+delete\s+namespace/],
-      message: 'Deleting namespaces is dangerous',
-      suggestion: 'Use kubectl delete pod instead'
-    }
-  ]
-};
-
-export default myPlugin;
-```
-
-### Runtime Dependencies
-
-vssh automatically checks runtime dependencies before executing plugin commands:
-
-- **Automatic Detection**: Checks if required tools are installed where needed
-- **Mode Aware**: Checks locally in local mode, on server in remote mode
-- **Clear Error Messages**: Users get helpful installation instructions
-- **Optional Dependencies**: Some dependencies can be marked as optional
-- **Cached Results**: Dependency checks are cached for performance
-
-Example dependency error:
-```
-❌ Missing required dependencies:
-• Docker is not installed on the server. Please install Docker from https://docker.com
-```
-
-## AI Workflows
-
-### Key Benefits
-
-- MCP-native support with automatic tool exposure
-- Specialized plugin commands for Docker, Coolify, Grafana, file editing
-- No quote escaping complexity in permission systems
-- Simple patterns like `Bash(vssh:*)` work consistently
-- Structured output for AI interpretation
-- Multi-layer protection against dangerous commands
-- Context-aware help system shows available commands
-
-### Common AI Tasks
+Pass one quoted shell command when it contains pipes, redirects, variables, or other shell syntax:
 
 ```bash
-# Docker Management (via plugin)
-vssh ldc                          # Quick container list
-vssh sdl myapp --tail 50          # View logs easily
-vssh sdi                          # Full system dashboard
-
-# System Monitoring
-vssh df -h
-vssh free -m
-vssh 'ps aux | head -20'
-
-# Coolify Operations (via plugin)
-vssh gcp                          # Get proxy configuration
-vssh lcd                          # List dynamic configs
-
-# Direct Commands
-vssh cat /etc/nginx/nginx.conf
-vssh 'find /var/log -name "*.log" -size +100M'
-
-# Local Execution Mode
-vssh local-mode status            # Check current mode
-vssh local-mode on                # Enable local execution
-vssh --local docker ps            # One-off local command
+vssh uptime
+vssh 'df -h / && free -h'
+vssh 'docker ps --format "{{.Names}}\t{{.Status}}"'
+vssh -c 'journalctl -u api --since "10 minutes ago" | tail -100'
 ```
 
-### Dynamic Help System
-
-vssh features a comprehensive, plugin-aware help system that automatically shows available commands based on enabled plugins:
+Multiple ordinary arguments are shell-quoted before execution:
 
 ```bash
-vssh --help  # or vssh, vssh help, vssh -h
+vssh printf %s 'hello world'
 ```
 
-**Key features:**
-- **Most Used Commands**: Automatically promotes frequently-used commands to the top of help output
-- **Usage Tracking**: Tracks command usage to personalize help for AI agents
-- **Categorized Display**: Commands organized by category (Core, Infrastructure, Monitoring, File Management)
-- **Plugin-Aware**: Only shows commands from enabled plugins
-- **Rich Examples**: Each plugin provides key commands and usage examples
-- **AI-Optimized**: Immediate visibility of all available commands for quick agent onboarding
+Use `--` if a command name conflicts with a VSSH command:
 
-**Example output (with usage history):**
-```
-VSSH - SSH Command Proxy with Safety Guards
-
-MOST USED COMMANDS:
-  vssh list-docker-containers [--a...  # List all Docker containers (45)
-  vssh udc <local-yaml> [--name]       # Update/create dynamic config (28)
-  vssh vdc <config-name>               # View specific dynamic config (15)
-
-QUICK START:
-  vssh <command>              # Execute any command on remote server
-  ...
+```bash
+vssh -- commands
 ```
 
-**Example output (categorized):**
-```
-AVAILABLE COMMANDS BY CATEGORY:
+### Streaming and stdin
 
-  Core:
-    Core proxy commands - proxy/run/exec (execute commands), lm (local mode toggle)
-      vssh proxy "ls -la"  # Execute command remotely
-      vssh run "docker ps"  # Same as proxy
+Raw mode is the default. It connects the remote process directly to the terminal or pipeline:
 
-  Infrastructure:
-    Docker container management - ldc (list), gdc (get), sdl (logs), ldp (ports), ldn (networks), sdi (info)
-      vssh ldc  # List all containers
-      vssh gdc myapp  # Find container by name
-    Coolify proxy management - udc (update config), vdc (view config), lcd (list configs), gcp (get proxy config)
-      vssh udc ./my-service.yaml  # Update/create dynamic config
-      vssh vdc my-service         # View a specific config
-
-  File Management:
-    Advanced file editing - ef (edit-file) with search/replace, regex, insert, delete operations
-      vssh ef config.yml --search "localhost" --replace "example.com"
+```bash
+printf 'uptime\n' | vssh 'bash -s'
+vssh 'docker logs -f api --tail 50'
+vssh --tty 'sudo systemctl status api'
 ```
 
-This ensures that both AI assistants and human users can quickly discover and understand all available functionality. The usage tracking means AI agents see their most-used commands first, reducing context window usage.
+VSSH returns the remote process exit code. A timed-out command returns `124`.
 
-## Configuration
+### JSON mode
 
-Configuration is stored in `~/.vssh/config.json`:
+`--json` captures output and writes exactly one JSON object:
+
+```bash
+vssh --json --timeout 30 'systemctl is-active api'
+```
 
 ```json
 {
-  "host": "your-server.com",
-  "user": "root",
-  "keyPath": "/Users/you/.ssh/id_rsa",
-  "localMode": false,
-  "encryptionKey": "<auto-generated-base64-key>",
-  "plugins": {
-    "enabled": ["docker", "coolify"],
-    "disabled": ["grafana"],
-    "config": {
-      "docker": {},
-      "coolify": {}
-    }
-  },
-  "usage": {
-    "commands": { "list-docker-containers": 45, "udc": 28 },
-    "plugins": { "docker": 45, "coolify": 28 },
-    "lastUpdated": "2025-12-17T..."
-  }
+  "success": true,
+  "command": "systemctl is-active api",
+  "transport": "ssh",
+  "exitCode": 0,
+  "durationMs": 84,
+  "timedOut": false,
+  "stdout": "active\n",
+  "stderr": ""
 }
 ```
 
-You can also use environment variables:
-- `VSSH_HOST` or `SSH_HOST` - Target server
-- `VSSH_USER` - SSH username (default: root)
-- `VSSH_KEY_PATH` - Path to SSH key
+JSON mode is bounded to 16 MiB of captured output. Use raw mode for large or unbounded streams.
 
-## Safety Features
+## Transfer files
 
-Multi-layer protection system:
+Uploads and downloads use native `scp`. Directories work recursively without an archive staging step.
 
-### Core Guards
-- Root filesystem deletion prevention
-- Direct disk write operation blocking
-- Mass Docker destruction protection
-- Critical service disruption prevention
-- System shutdown/reboot blocking
-
-### Plugin Guards
-- Plugins can add custom safety rules
-- Coolify plugin protects configuration directories
-- Extensible for domain-specific safety
-
-All blocked commands are logged to `~/.vssh/data/logs/blocked_commands.log`.
-
-## Data Storage
-
-vssh stores all data in your home directory:
+```bash
+vssh upload ./config.yml /etc/app/config.yml
+vssh upload --mode 600 ./app.env /etc/app/app.env
+vssh upload ./build /var/www/
+vssh download /var/log/app.log ./logs/app.log
+vssh download /var/www/site ./site-copy
 ```
-~/.vssh/
-├── config.json           # SSH configuration with encryption key
-├── plugins/
-│   └── grafana.enc       # Encrypted Grafana credentials
-└── data/
-    └── logs/
-        ├── proxy_commands.log    # Command history
-        └── blocked_commands.log  # Blocked attempts
+
+The same SSH control connection is reused when possible, which substantially reduces repeated command and transfer startup cost.
+
+`upload --mode <octal>` sets permissions after a successful copy and fails the operation if `chmod` fails. This replaces fragile upload-then-chmod scripting while still using the reused OpenSSH connection.
+
+## Connection options
+
+Override the default target without editing configuration:
+
+```bash
+vssh --host staging.example.com --user deploy uptime
+vssh --host prod --identity ~/.ssh/prod_ed25519 --port 2222 uptime
 ```
+
+Environment variables are also supported:
+
+- `VSSH_HOST` (or legacy `SSH_HOST`)
+- `VSSH_USER`
+- `VSSH_KEY_PATH`
+- `VSSH_PORT`
+- `VSSH_HOME` and `VSSH_CONFIG_PATH` for isolated environments
+
+Example configuration:
+
+```json
+{
+  "host": "prod",
+  "user": "deploy",
+  "keyPath": "/Users/you/.ssh/id_ed25519",
+  "port": 22,
+  "connectTimeoutSeconds": 30,
+  "controlPersistSeconds": 60,
+  "localMode": false
+}
+```
+
+The host may be an OpenSSH alias. If `user` or `keyPath` is omitted, OpenSSH resolves it from the SSH agent and normal configuration files.
+
+## Safety and audit behavior
+
+VSSH blocks recognizable forms of a small set of catastrophic operations, including broad root deletion, direct disk formatting/writes, destructive Docker volume pruning, firewall flushing, and shutdown commands. Suspicious download-and-execute pipelines produce warnings.
+
+These checks are guardrails, not a shell parser, policy engine, authorization boundary, or sandbox. Review commands with the same care you would use with `ssh`.
+
+Audit records are JSON Lines at `~/.vssh/data/logs/commands.jsonl`. Each record contains timestamp, transport, duration, exit status, command byte length, and a SHA-256 command hash. Command text and command output are never logged. Use `--no-audit` when even metadata should not be recorded.
+
+## Discovery and diagnostics
+
+```bash
+vssh --version
+vssh commands
+vssh commands --json
+vssh config show
+vssh config show --json
+vssh doctor
+vssh doctor --json
+```
+
+`config show` is intentionally non-secret. `doctor` verifies the local OpenSSH tools, identity path, and an actual connection.
+
+## VSSH 1 compatibility commands
+
+VSSH 2 keeps a small compatibility boundary for command names that still exist in deployed scripts:
+
+- Docker: `dls`, `gdc`, `sdl`, `ldp`, `ldn`, `sdi`
+- Coolify dynamic config: `lcd`/`ldc`, `vdc`, `udc`, `gcp`
+- Targeted file editing: `ef` / `edit-file`
+- Local-mode migration: `lm` / `local-mode`
+
+They are not plugins and are not the primary product surface. New scripts should prefer raw, familiar remote commands:
+
+```bash
+vssh "docker ps -a"
+vssh "docker logs api --tail 100"
+vssh "find /data/coolify/proxy/dynamic -maxdepth 1 -type f"
+```
+
+The VSSH 1 MCP server, MCP installer, general plugin runtime, Grafana discovery commands, credential encryption subsystem, and usage-promoted help were removed in VSSH 2. They added substantial maintenance and security surface without enough independent value over the CLI.
 
 ## Development
 
 ```bash
-# Clone the repository
 git clone https://github.com/light-merlin-dark/vssh.git
 cd vssh
-
-# Install dependencies
 bun install
-
-# Run in development mode
-bun run dev
-
-# Build for production
-bun run build
-
-# Run tests
-bun test
+bun run dev --help
+npm run verify
+npm pack --dry-run
 ```
 
-### Testing Philosophy
-
-vssh uses **Bun's native test runner** with a **plugin-centric testing approach** that promotes modularity and independence:
-
-- **Core Tests** (`/tests`): Validate the framework, plugin system, and core utilities only
-- **Plugin Tests** (`/src/plugins/*/tests`): Each plugin manages its own test suite
-- **Bun Test Runner**: Significantly faster than traditional test frameworks
-- **No Watch Mode**: Tests run once and complete quickly for deterministic results
-- **Minimal Logging**: Tests run silently unless errors occur
-
-This separation ensures plugins remain truly independent while leveraging shared testing utilities. Bun's built-in test runner provides excellent performance without additional dependencies.
-
-```bash
-# Run core framework tests only
-bun test
-
-# Run all plugin tests
-bun run test:plugins
-
-# Run everything (core + plugins)
-bun run test:all
-
-# Test a specific plugin
-bun run test:plugin docker
-
-# List available plugins with test status
-bun run test:list-plugins
-```
-
-For detailed testing documentation, see [docs/testing.md](docs/testing.md).
+Publishing uses npm so end users need only Node.js, not Bun.
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) file for details.
-
----
-
-Built by [Robert E. Beckner III (Merlin)](https://rbeckner.com)
+MIT — see [LICENSE](LICENSE).

@@ -1,0 +1,30 @@
+#!/usr/bin/env node
+const fs = require('fs');
+const { spawn } = require('child_process');
+
+const args = process.argv.slice(2);
+if (args.includes('-V')) {
+  process.stderr.write('OpenSSH_fake_1.0\n');
+  process.exit(0);
+}
+
+if (process.env.FAKE_SSH_LOG) {
+  fs.appendFileSync(process.env.FAKE_SSH_LOG, `${JSON.stringify(args)}\n`);
+}
+
+const separator = args.indexOf('--');
+const command = separator >= 0 ? args[separator + 2] : args.at(-1);
+if (!command) process.exit(0);
+
+const child = spawn('/bin/sh', ['-lc', command], { stdio: 'inherit' });
+for (const signal of ['SIGINT', 'SIGTERM', 'SIGHUP']) {
+  process.on(signal, () => child.kill(signal));
+}
+child.on('error', (error) => {
+  process.stderr.write(`${error.message}\n`);
+  process.exit(127);
+});
+child.on('exit', (code, signal) => {
+  if (signal) process.kill(process.pid, signal);
+  else process.exit(code ?? 1);
+});

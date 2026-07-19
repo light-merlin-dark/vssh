@@ -1,43 +1,31 @@
 {
   "name": "@light-merlin-dark/vssh",
-  "version": "1.8.4",
-  "description": "MCP-native SSH proxy for AI agents. CLI & MCP Server, plugin system, AI safety guards.",
-  "main": "dist/index.js",
+  "version": "2.0.0",
+  "description": "Guarded remote command execution and file transfer through native OpenSSH.",
   "bin": {
-    "vssh": "dist/index.js",
-    "vssh-mcp": "dist/mcp-server.js"
+    "vssh": "dist/index.js"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\" && tsc && node -e \"require('fs').chmodSync('dist/index.js',0o755)\"",
     "dev": "bun run src/index.ts",
+    "lint": "tsc --noEmit",
     "test": "bun test tests/unit tests/integration",
-    "test:silent": "bun test tests/unit tests/integration 2>/dev/null",
-    "test:coverage": "bun test --coverage",
     "test:unit": "bun test tests/unit",
     "test:integration": "bun test tests/integration",
-    "test:plugins": "bun test tests/integration/plugin-test-runner.test.ts",
-    "test:plugin": "bun run scripts/test-plugin-dynamic.ts",
-    "test:list-plugins": "bun run scripts/list-plugins.ts",
-    "test:all": "bun test && bun run test:plugins",
-    "test:guard": "bun run tests/test-guard.ts",
-    "test:old-plugins": "bun run tests/test-plugins.ts",
-    "test:mcp": "bun run build && bun run tests/test-mcp.ts",
-    "prepublishOnly": "npm run build",
-    "lint": "tsc --noEmit",
-    "start:mcp": "bun run dist/src/mcp-server.js",
-    "call-mcp": "bun run src/utils/call-mcp.ts"
+    "smoke": "node dist/index.js --version && node dist/index.js commands --json",
+    "verify": "npm run lint && npm test && npm run build && npm run smoke",
+    "prepack": "npm run build",
+    "prepublishOnly": "npm run verify && npm audit --omit=dev"
   },
   "keywords": [
     "ssh",
-    "ai-tools",
-    "claude-code",
     "cli",
     "safety",
-    "proxy",
     "remote-execution",
-    "command-guard",
-    "mcp",
-    "model-context-protocol"
+    "file-transfer",
+    "devops",
+    "automation",
+    "agents"
   ],
   "author": "Merlin",
   "license": "MIT",
@@ -50,21 +38,15 @@
     "url": "https://github.com/light-merlin-dark/vssh/issues"
   },
   "engines": {
-    "node": ">=14.0.0"
+    "node": ">=18.0.0"
   },
-  "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.12.1",
-    "chalk": "^5.3.0",
-    "ssh2": "^1.15.0",
-    "yaml": "^2.8.2",
-    "zod": "^3.22.4"
-  },
+  "os": [
+    "darwin",
+    "linux"
+  ],
   "devDependencies": {
-    "@types/node": "^20.19.0",
-    "@types/ssh2": "^1.11.18",
-    "dotenv": "^16.6.1",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.0.0"
+    "@types/node": "^20.19.43",
+    "typescript": "^5.9.3"
   },
   "files": [
     "dist",
