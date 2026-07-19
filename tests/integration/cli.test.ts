@@ -149,7 +149,19 @@ describe('VSSH CLI', () => {
     const execution = run(['commands', '--json']);
     expect(execution.status).toBe(0);
     const output = JSON.parse(execution.stdout);
+    expect(output.schemaVersion).toBe(1);
     expect(output.version).toBe('2.0.0');
-    expect(output.commands.some((command: { name: string }) => command.name.startsWith('upload'))).toBe(true);
+    expect(output.defaultCommand).toBe('exec');
+    expect(output.globalOptions.some((option: { name: string }) => option.name === '--json')).toBe(true);
+    expect(output.commands.find((command: { name: string }) => command.name === 'upload')).toMatchObject({
+      aliases: [],
+      usage: 'vssh upload [--mode <octal>] <local> <remote>',
+      kind: 'core',
+    });
+    expect(output.commands.find((command: { name: string }) => command.name === 'lcd')).toMatchObject({
+      aliases: ['ldc'],
+      kind: 'compatibility',
+    });
+    expect(new Set(output.commands.map((command: { name: string }) => command.name)).size).toBe(output.commands.length);
   });
 });

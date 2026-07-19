@@ -171,6 +171,8 @@ vssh doctor --json
 
 `config show` is intentionally non-secret. `doctor` verifies the local OpenSSH tools, identity path, and an actual connection.
 
+`commands --json` is a versioned discovery contract. It returns a schema version, the CLI version, the implicit default command, global options, and one record per invocable command with an exact name, aliases, usage, kind, and description. Agents do not need to scrape help text or split comma-delimited shortcuts.
+
 ## VSSH 1 compatibility commands
 
 VSSH 2 keeps a small compatibility boundary for command names that still exist in deployed scripts:

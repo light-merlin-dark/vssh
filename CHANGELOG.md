@@ -22,7 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - `vssh doctor` / `vssh doctor --json` for executable, config, identity, and connection checks.
-- `vssh commands --json` for agent-readable command discovery.
+- `vssh commands --json` for agent-readable command discovery with a versioned schema, exact command names, aliases, usages, and global options.
 - `--timeout`, `--tty`, `--host`, `--user`, `--identity`, `--port`, `--remote`, and `--no-audit` options.
 - A deterministic local `npm run verify` release gate covering tests, typecheck, build, and CLI smoke behavior.
 

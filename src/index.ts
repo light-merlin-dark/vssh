@@ -31,17 +31,149 @@ interface ParsedGlobalOptions {
   overrides: ConfigOverrides;
 }
 
+const GLOBAL_OPTIONS = [
+  { name: '--json', aliases: [], value: null, description: 'Capture and return one JSON result' },
+  { name: '--timeout', aliases: [], value: '<seconds>', description: 'Stop the command after a deadline (exit 124)' },
+  { name: '--tty', aliases: ['-t'], value: null, description: 'Request a remote pseudo-terminal' },
+  { name: '--host', aliases: [], value: '<host>', description: 'Override the configured host' },
+  { name: '--user', aliases: [], value: '<user>', description: 'Override the configured user' },
+  { name: '--identity', aliases: ['-i'], value: '<path>', description: 'Override the private key' },
+  { name: '--port', aliases: ['-p'], value: '<port>', description: 'Override the SSH port' },
+  { name: '--no-audit', aliases: [], value: null, description: 'Do not write bounded command metadata' },
+  { name: '--local', aliases: [], value: null, description: 'Run through the local shell for compatibility' },
+  { name: '--remote', aliases: [], value: null, description: 'Override local mode and use SSH' },
+  { name: '--command', aliases: ['-c'], value: '<command>', description: 'Pass one literal command string' },
+  { name: '--', aliases: [], value: '<command...>', description: 'Treat remaining arguments as a raw command' },
+] as const;
+
 const COMMANDS = [
-  { name: '<command>', kind: 'core', description: 'Run a command on the configured SSH host' },
-  { name: 'upload [--mode <octal>] <local> <remote>', kind: 'core', description: 'Copy with native scp and optionally set remote mode' },
-  { name: 'download <remote> <local>', kind: 'core', description: 'Copy a file or directory with native scp' },
-  { name: 'doctor', kind: 'core', description: 'Verify OpenSSH, configuration, key, and connectivity' },
-  { name: 'config show', kind: 'core', description: 'Show non-secret effective configuration' },
-  { name: '--setup', kind: 'core', description: 'Configure the default SSH target' },
-  { name: 'commands', kind: 'core', description: 'List the CLI surface; add --json for metadata' },
-  { name: 'dls, gdc, sdl, ldp, ldn, sdi', kind: 'compatibility', description: 'Docker shortcuts retained for migration' },
-  { name: 'lcd, ldc, vdc, udc, gcp', kind: 'compatibility', description: 'Coolify config shortcuts retained for migration' },
-  { name: 'ef', kind: 'compatibility', description: 'Targeted remote file edits with backup and dry-run support' },
+  {
+    name: 'exec',
+    aliases: ['run', 'proxy'],
+    usage: 'vssh [options] <command...>',
+    kind: 'core',
+    implicit: true,
+    description: 'Run a command on the configured SSH host; the exec name is normally omitted',
+  },
+  {
+    name: 'upload',
+    aliases: [],
+    usage: 'vssh upload [--mode <octal>] <local> <remote>',
+    kind: 'core',
+    description: 'Copy a file or directory with native scp and optionally set remote mode',
+  },
+  {
+    name: 'download',
+    aliases: [],
+    usage: 'vssh download <remote> <local>',
+    kind: 'core',
+    description: 'Copy a remote file or directory with native scp',
+  },
+  {
+    name: 'doctor',
+    aliases: ['status'],
+    usage: 'vssh doctor [--json]',
+    kind: 'core',
+    description: 'Verify OpenSSH, configuration, identity, and connectivity',
+  },
+  {
+    name: 'config',
+    aliases: ['--setup'],
+    usage: 'vssh config <show|setup> [--json]',
+    kind: 'core',
+    description: 'Show non-secret effective configuration or configure the default target',
+  },
+  {
+    name: 'commands',
+    aliases: [],
+    usage: 'vssh commands [--json]',
+    kind: 'core',
+    description: 'List the CLI surface and machine-readable metadata',
+  },
+  {
+    name: 'local-mode',
+    aliases: ['lm'],
+    usage: 'vssh lm [on|off|status]',
+    kind: 'compatibility',
+    description: 'Manage the local-shell migration mode',
+  },
+  {
+    name: 'dls',
+    aliases: [],
+    usage: 'vssh dls',
+    kind: 'compatibility',
+    description: 'List Docker containers',
+  },
+  {
+    name: 'gdc',
+    aliases: [],
+    usage: 'vssh gdc <container-name-or-id> [--starts-with|--ends-with] [--return-name]',
+    kind: 'compatibility',
+    description: 'Resolve one Docker container ID or name',
+  },
+  {
+    name: 'sdl',
+    aliases: [],
+    usage: 'vssh sdl <container> [docker-logs-options...]',
+    kind: 'compatibility',
+    description: 'Stream Docker logs',
+  },
+  {
+    name: 'ldp',
+    aliases: [],
+    usage: 'vssh ldp',
+    kind: 'compatibility',
+    description: 'List Docker port mappings',
+  },
+  {
+    name: 'ldn',
+    aliases: [],
+    usage: 'vssh ldn',
+    kind: 'compatibility',
+    description: 'List Docker networks',
+  },
+  {
+    name: 'sdi',
+    aliases: [],
+    usage: 'vssh sdi',
+    kind: 'compatibility',
+    description: 'Show Docker system information',
+  },
+  {
+    name: 'lcd',
+    aliases: ['ldc'],
+    usage: 'vssh lcd [config-name]',
+    kind: 'compatibility',
+    description: 'List or view Coolify dynamic configuration',
+  },
+  {
+    name: 'vdc',
+    aliases: [],
+    usage: 'vssh vdc <config-name>',
+    kind: 'compatibility',
+    description: 'View one Coolify dynamic configuration file',
+  },
+  {
+    name: 'udc',
+    aliases: [],
+    usage: 'vssh udc <local-yaml> [--name <config-name>]',
+    kind: 'compatibility',
+    description: 'Upload one Coolify dynamic configuration file',
+  },
+  {
+    name: 'gcp',
+    aliases: [],
+    usage: 'vssh gcp',
+    kind: 'compatibility',
+    description: 'Show the Coolify proxy compose file',
+  },
+  {
+    name: 'ef',
+    aliases: ['edit-file'],
+    usage: 'vssh ef <path> [edit-options...]',
+    kind: 'compatibility',
+    description: 'Apply targeted file edits with backup and dry-run support',
+  },
 ] as const;
 
 function showHelp(): void {
@@ -322,8 +454,17 @@ async function main(): Promise<void> {
     return;
   }
   if (name === 'commands' && !parsed.forceRaw) {
-    if (parsed.json) process.stdout.write(`${JSON.stringify({ version: VERSION, commands: COMMANDS })}\n`);
-    else COMMANDS.forEach((command) => console.log(`${command.name.padEnd(36)} ${command.description}`));
+    if (parsed.json) {
+      process.stdout.write(`${JSON.stringify({
+        schemaVersion: 1,
+        version: VERSION,
+        defaultCommand: 'exec',
+        globalOptions: GLOBAL_OPTIONS,
+        commands: COMMANDS,
+      })}\n`);
+    } else {
+      COMMANDS.forEach((command) => console.log(`${command.usage.padEnd(72)} ${command.description}`));
+    }
     return;
   }
 
