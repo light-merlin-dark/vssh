@@ -1,6 +1,6 @@
 # VSSH Engineering Plan
 
-Last grounded: 2026-07-18
+Last grounded: 2026-07-19
 
 ## Objective
 
@@ -8,7 +8,9 @@ Release VSSH 2 as a dependable, portable CLI: a guarded shortcut to native OpenS
 
 ## Ground Truth
 
-- The VSSH 2 implementation is complete locally but has not been pushed, tagged, or published.
+- The VSSH 2 implementation is clean and pushed on `main` at `ea0795d`. It is
+  installed locally as 2.0.0, but has not been tagged or published; npm
+  `latest` remains 1.8.3.
 - Transport is native `ssh`/`scp`, with normal host verification and short-lived OpenSSH control connection reuse.
 - Raw mode streams stdin/stdout/stderr and propagates remote exit codes; JSON mode is separated, bounded, and machine-readable.
 - Upload/download are core. `upload --mode <octal>` folds permission setting into the operation over the reused connection.
@@ -25,14 +27,20 @@ Release VSSH 2 as a dependable, portable CLI: a guarded shortcut to native OpenS
 - Production `npm audit` reports zero known vulnerabilities.
 - The actual npm tarball installs and runs under Node.js 18.12.1; its generated executable has the correct mode.
 - A live configured target passed doctor, piped stdin, separated JSON stdout/stderr, non-zero exit propagation, upload/download, and retained compatibility smoke checks.
+- A fresh live production probe passed `upload --mode 600` with exact checksum
+  parity and remote mode 600, then removed the probe artifact.
+- Prod-control has adopted command-metadata capability detection: VSSH 2 uses
+  one mode-setting upload, while VSSH 1 retains a fail-closed upload-plus-chmod
+  compatibility path. Direct 600/700 mode proof and the SEOReport env proof
+  pass; native connection reuse reduced the four-component env render from
+  10.89s to 3.01s.
 - README, changelog, CLI help, command metadata, project guidance, and operator skills describe the reduced surface consistently.
 
 ## Release Follow-up
 
 1. Review the breaking-change release notes and publish `@light-merlin-dark/vssh@2.0.0` only with explicit release approval; then tag and push the corresponding commit.
-2. Migrate deployment callers that perform upload plus a separate `chmod` to `vssh upload --mode ...`.
-3. Update public homepage copy in the separately controlled `/Users/merlin/_dev/vssh-public` project. Its `AGENTS.md` positioning contract is updated locally, but that repository already contains unrelated dirty changes; isolate its eventual commit.
-4. Observe real fleet latency and failure telemetry after rollout. Revisit a custom session daemon only if native OpenSSH control reuse is measurably insufficient.
+2. Update public homepage copy in the separately controlled `/Users/merlin/_dev/vssh-public` project. Its `AGENTS.md` positioning contract is updated locally, but that repository already contains unrelated dirty changes; isolate its eventual commit.
+3. Observe real fleet latency and failure telemetry after rollout. Revisit a custom session daemon only if native OpenSSH control reuse is measurably insufficient.
 
 ## Product Boundary
 
