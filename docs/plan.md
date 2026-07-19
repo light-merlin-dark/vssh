@@ -47,7 +47,7 @@ Release VSSH 2 as a dependable, portable CLI: a guarded shortcut to native OpenS
 
 1. Restore npm authentication, publish `@light-merlin-dark/vssh@2.0.0` with release approval, then tag and push the corresponding commit. npm `latest` remains 1.8.3 until this happens.
 2. Review `http://vssh.localhost`. Browser Gateway desktop/mobile acceptance and the final blind Eval Gateway packet are green with no deterministic layout defects or blocker/major findings.
-3. `vssh.io` is purchased and registered in Cloudflare. Prod Control contains the exact apex/`www`/admin edge contract and snapshot rollback; crawler-safe WAF is applied, but DNS remains empty. Wait for recursive nameserver delegation, provision the centralized-admin secret boundary, prove exact release candidates, and cut over only through the journaled `prod app cutover vssh` path.
+3. `vssh.io` is purchased, registered in Cloudflare, and delegation is proven through authoritative plus public recursive DNS. Prod Control contains the exact apex/`www`/admin edge contract and snapshot rollback; crawler-safe WAF is applied, but DNS remains empty. Provision the centralized-admin secret boundary, prove exact release candidates, and cut over only through the journaled `prod app cutover vssh` path.
 4. Observe real fleet latency and failure telemetry after rollout. Revisit a custom session daemon only if native OpenSSH control reuse is measurably insufficient.
 
 ## Product Boundary
