@@ -58,12 +58,15 @@ Release VSSH 2 as a dependable, portable CLI: a guarded shortcut to native OpenS
   pass; native connection reuse reduced the four-component env render from
   10.89s to 3.01s.
 - README, changelog, CLI help, command metadata, project guidance, operator skills, and the public testing strategy describe the reduced surface consistently.
-- The public README now leads with the cold-developer mental model: native
-  OpenSSH underneath, the exact automation value above it, when plain `ssh` is
-  the better choice, a side-by-side first command, four core operations,
-  failure semantics, and the deliberately narrow guardrail boundary. GitHub's
-  stale MCP/plugin description and topics are corrected, and the repository
-  links to `https://vssh.io`.
+- The public README now leads with a mandatory SSH/VSSH capability comparison
+  that separates inherited OpenSSH behavior from VSSH's full added value:
+  structured results, default-target overrides, catastrophic-command
+  guardrails, mode-setting transfers, complete diagnostics, content-free audit
+  evidence, connection reuse, and versioned agent discovery. The remaining
+  narrative expands that table into the command model, quick start, core
+  operations, failure semantics, and deliberate safety boundary. GitHub's stale
+  MCP/plugin description and topics are corrected, and the repository links to
+  `https://vssh.io`.
 - A blind Eval Gateway review used two generic developer archetypes at desktop
   and mobile. All four independently understood VSSH, distinguished it from
   plain SSH, and chose install plus setup as the first action; the accepted

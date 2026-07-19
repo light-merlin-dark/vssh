@@ -1,14 +1,32 @@
 # VSSH
 
-**Native SSH underneath. Guardrails and predictable automation output on top.**
+**VSSH turns native OpenSSH into a predictable automation contract.**
 
-VSSH runs ordinary remote shell commands through the `ssh` already installed on
-your machine and transfers files through `scp`. It adds a small layer for
-scripts and agents: one default target, checks for a short list of catastrophic
-commands, stable JSON results, connection diagnostics, private audit metadata,
-and file transfers that can set permissions.
+OpenSSH already solves secure remote access. VSSH keeps its transport,
+authentication, host verification, configuration, and command language intact,
+then adds the operational guarantees that scripts and agents otherwise have to
+rebuild around every `ssh` and `scp` call.
 
-If you know SSH, you already know how to run commands with VSSH:
+## SSH and VSSH
+
+| Capability | SSH / SCP | VSSH |
+|---|---|---|
+| Secure transport | Native OpenSSH authentication, encryption, host verification, `known_hosts`, and SSH-agent behavior | Uses that same native OpenSSH path; VSSH does not replace or emulate SSH |
+| Remote commands | Runs familiar shell, Linux, Docker, and systemd commands | Runs the same commands with no VSSH-specific remote language |
+| Target selection | Repeat connection flags or maintain an OpenSSH host alias | Save one default target, then override host, user, identity, or port per call |
+| Terminal behavior | Streams stdin, stdout, and stderr; supports TTYs and returns the remote exit code | Preserves streaming, stdin, TTY, signals, and the remote exit code in raw mode |
+| Automation output | Build and maintain wrappers to separate streams, time execution, detect timeout, and serialize a result | `--json` emits one bounded object with stdout, stderr, exit code, duration, timeout state, and signal when applicable |
+| Catastrophic-command guardrails | Sends the command as written | Blocks recognizable root deletion, direct disk writes, destructive volume cleanup, firewall flushes, and shutdown patterns before connecting |
+| File transfer with permissions | Coordinate `scp` with a separate `ssh chmod` call and reconcile failures | `upload --mode <octal>` performs both as one reported operation and fails if either phase fails |
+| Connection diagnosis | Check binaries, configuration, identity, and reachability separately | `vssh doctor` verifies the complete path, including a real connection |
+| Audit trail | Add shell history or custom logging, often capturing sensitive command content | Writes owner-only outcome metadata and a command hash; never command text, output, credentials, or file contents |
+| Repeated-call latency | Configure OpenSSH multiplexing yourself | Reuses a short-lived OpenSSH control connection when possible |
+| Agent discovery | Parse help text and infer aliases or argument shapes | `commands --json` exposes a versioned, machine-readable command contract |
+
+That is the product boundary: familiar SSH security and commands underneath; a
+consistent remote-operations contract above them.
+
+If you know SSH, you already know the command model:
 
 ```bash
 # OpenSSH
@@ -22,32 +40,10 @@ The quoted text is not a VSSH-specific language. It is the same remote shell
 command you would give to `ssh`: Linux, Docker, systemd, and shell commands all
 remain unchanged.
 
-## When VSSH earns an install
-
-Use plain `ssh` when you want an interactive shell or a one-off command and do
-not need an automation contract.
-
-Use VSSH when a script or agent repeatedly operates one remote target and you
-want these behaviors without rebuilding them in every project:
-
-- **One JSON result:** stdout, stderr, exit code, duration, timeout state, and a
-  signal when applicable have a stable machine-readable shape.
-- **Catastrophic-command checks:** recognizable root deletion, direct disk
-  writes, destructive Docker volume cleanup, firewall flushes, and shutdown
-  commands are blocked before a connection is opened.
-- **Real diagnostics:** `vssh doctor` checks the local tools, configuration,
-  identity path, and a live SSH connection.
-- **Simple transfers:** `upload`, `upload --mode`, and `download` use native
-  `scp`; permission setting can be part of the upload operation.
-- **Private audit metadata:** VSSH records a command hash and outcome, never the
-  command text, output, credentials, or file contents.
-- **Faster repeated calls:** a short-lived OpenSSH control connection is reused
-  when possible.
-
-Underneath, VSSH delegates transport, host verification, `known_hosts`, SSH-agent access, streaming, signals, and remote exit behavior to your native OpenSSH client.
-
-VSSH is not a replacement SSH protocol, a sandbox, an MCP server, a plugin
-platform, or a Docker-specific wrapper.
+Use plain `ssh` for an interactive session or an isolated one-off. Use VSSH when
+a script or agent needs to repeat remote work with predictable results,
+diagnostics, transfers, guardrails, and privacy-safe evidence. The guardrails
+are not a sandbox or authorization boundary.
 
 ## Quick start
 
