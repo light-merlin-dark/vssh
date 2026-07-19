@@ -59,6 +59,16 @@ Release VSSH 2 as a dependable, portable CLI: a guarded shortcut to native OpenS
   10.89s to 3.01s.
 - README, changelog, CLI help, command metadata, project guidance, operator skills, and the public testing strategy describe the reduced surface consistently.
 - The public consumer has been reduced and pushed as an intentionally authored static product surface plus centralized Stack Admin, analytics, SEO, settings, auth, and errors. StackHTMX, public accounts, tenant-local admin, OSS content automation, and unused plugin routes are removed.
+- DNS incident follow-up is grounded: the first launch attempt populated the
+  local router's negative cache before the new apex record existed. Private
+  browsing did not bypass that resolver cache. The shared Cloudflare CLI,
+  published as private `@merlin/cf@1.2.9`, now
+  exposes `cf dns-status <hostname> --wait=<seconds> --json`, which compares
+  Cloudflare record state with Cloudflare, Google, Quad9, and the machine
+  resolver while treating local stale DNS as a warning rather than failed
+  public convergence. VSSH currently reports `healthy` across every lane, and
+  `prod app public-proof vssh` passes the root, same-origin API identity, `www`,
+  and legacy-host redirect contracts.
 
 ## Release Follow-up
 
