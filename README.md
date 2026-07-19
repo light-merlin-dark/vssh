@@ -85,6 +85,23 @@ below are programs on the remote machine—not VSSH subcommands.
 
 Windows is not currently supported.
 
+## If setup or a command fails
+
+Start with `vssh doctor` for a readable diagnosis or `vssh doctor --json` for
+automation. It checks that `ssh` and `scp` exist, the configuration and identity
+path are usable, and the target accepts a real connection.
+
+VSSH preserves native failure behavior instead of hiding it:
+
+- Host-key, authentication, DNS, and connection errors remain normal OpenSSH
+  errors.
+- A failed remote command exits with the remote status. In JSON mode, the same
+  failure still produces one parseable object with `success: false`, `exitCode`,
+  `stdout`, and `stderr`.
+- A timeout exits with status 124 and sets `timedOut: true` in JSON mode.
+- Captured output over 16 MiB fails rather than returning silently truncated
+  JSON; use raw mode for large streams.
+
 ## Run commands
 
 Pass one quoted shell command when it contains pipes, redirects, variables, or other shell syntax:
