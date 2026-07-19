@@ -16,6 +16,7 @@ Release VSSH 2 as a dependable, portable CLI: a guarded shortcut to native OpenS
 - A small compatibility boundary remains for deployed Docker, Coolify, file-edit, local-mode, and legacy execution aliases. It is not an extensibility system and should not grow.
 - Audit logs contain only owner-readable bounded metadata, never command text or output.
 - The npm package has zero runtime dependencies.
+- Release verification is local and explicit; this project does not use GitHub Actions.
 - The measured session-daemon handoff is reconciled in `docs/handoffs/2026-07-19-session-daemon-and-upload-mode.md`: native ControlMaster reuse replaces the proposed custom daemon, while `upload --mode` is retained.
 
 ## Verified

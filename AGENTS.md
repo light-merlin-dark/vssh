@@ -105,12 +105,13 @@ src/
 - Integration tests use fake `ssh`/`scp` executables and must cover stream separation, stdin, exit codes, timeout, guard blocking, JSON shape, audit privacy, and transfer argv.
 - Never make the ordinary test suite depend on a real server or the maintainer's `~/.vssh` state.
 - Build before package inspection so removed source cannot survive as stale `dist` files.
-- CI must pass on Node.js 18, 20, and 22 and production `npm audit` must be clean.
+- The local release gate must pass under the supported Node versions and production `npm audit` must be clean.
 
 ## Release Rules
 
 - Keep `README.md`, `CHANGELOG.md`, CLI help, `commands --json`, package metadata, and the operator skill consistent.
 - Run `npm run verify`, `npm audit --omit=dev`, and `npm pack --dry-run` before publishing.
+- Do not add GitHub Actions for this project; release verification is intentionally local and explicit.
 - Publishing uses npm; end users must not need Bun.
 - The package must have zero runtime npm dependencies unless a future dependency demonstrably replaces more complexity than it adds.
 

@@ -1,26 +1,37 @@
 # VSSH
 
-VSSH is a small, guarded CLI for running commands and moving files through native OpenSSH.
+## SSH is the transport. VSSH is the operating contract around it.
+
+OpenSSH is already excellent at secure remote execution. VSSH keeps it intact and adds the pieces agents and automation otherwise have to rebuild in every project: preflight guardrails, structured results, privacy-safe audit metadata, repeatable diagnostics, and file transfer with permission setting.
+
+VSSH does not introduce a second remote command language. The command after `vssh` is still the Linux, Docker, systemd, or shell command you already know.
+
+### What VSSH adds to normal SSH
+
+| Need | Plain `ssh` / `scp` | VSSH |
+|---|---|---|
+| Agent-readable results | You write parsing and error wrappers | One stable `--json` result with separate stdout, stderr, exit code, timing, signal, and timeout state |
+| Catastrophic-command checks | The command is sent as written | Recognizable root deletion, disk writes, destructive volume cleanup, firewall flushes, and shutdown commands are blocked before connection |
+| Operational audit trail | Add shell history or logging yourself | Owner-only metadata with command hash and outcome; command text and output are never stored |
+| Upload plus permissions | Coordinate `scp` and a second `ssh chmod` call | `upload --mode <octal>` is one operation and fails if either phase fails |
+| Connection readiness | Diagnose binaries, key paths, config, and reachability separately | `vssh doctor` checks the complete path, including a real connection |
+| Repeated-call latency | Configure multiplexing yourself | Short-lived OpenSSH control reuse is enabled by default |
+
+Underneath, VSSH delegates transport, host verification, `known_hosts`, SSH-agent access, streaming, signals, and remote exit behavior to your native OpenSSH client.
+
+## Thirty-second start
 
 ```bash
+npm install -g @light-merlin-dark/vssh
+vssh --setup
+vssh doctor
+
 vssh 'docker ps --format "table {{.Names}}\t{{.Status}}"'
 vssh upload ./release.tar.gz /tmp/release.tar.gz
 vssh --json 'systemctl is-active api'
 ```
 
-It is intentionally not a replacement SSH protocol, an MCP server, or a plugin platform. VSSH gives a frequently used SSH target a short, consistent command; adds guardrails against common catastrophic mistakes; preserves real SSH streaming and exit behavior; and offers one stable JSON envelope when automation needs it.
-
-## Why VSSH?
-
-- Native OpenSSH transport, host verification, agent support, and `known_hosts` policy
-- Live stdin, stdout, stderr, signals, and remote exit codes
-- Native `scp` uploads and downloads for files or directories
-- Reused SSH connections with a short `ControlPersist` window
-- A structured `--json` mode for agents and scripts
-- Bounded audit metadata that never stores command text or output
-- Zero runtime npm dependencies
-
-Agents already know SSH, Docker, systemd, and the Linux command line. VSSH keeps those skills useful instead of hiding them behind a second command language.
+That is the product boundary: native SSH behavior plus a small, dependable automation layer. VSSH is intentionally not an SSH protocol, MCP server, plugin platform, Docker wrapper, or production control plane.
 
 ## Requirements
 
@@ -28,14 +39,6 @@ Agents already know SSH, Docker, systemd, and the Linux command line. VSSH keeps
 - Node.js 18 or newer
 - OpenSSH `ssh` and `scp`
 - Key-based access, an `ssh-agent`, or a working OpenSSH host alias
-
-## Install
-
-```bash
-npm install -g @light-merlin-dark/vssh
-vssh --setup
-vssh doctor
-```
 
 Configuration is stored at `~/.vssh/config.json` with owner-only permissions.
 

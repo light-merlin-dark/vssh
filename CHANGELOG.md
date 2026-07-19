@@ -24,7 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `vssh doctor` / `vssh doctor --json` for executable, config, identity, and connection checks.
 - `vssh commands --json` for agent-readable command discovery.
 - `--timeout`, `--tty`, `--host`, `--user`, `--identity`, `--port`, `--remote`, and `--no-audit` options.
-- CI across Node.js 18, 20, and 22 with test, build, package, and production-audit gates.
+- A deterministic local `npm run verify` release gate covering tests, typecheck, build, and CLI smoke behavior.
 
 ### Security
 
