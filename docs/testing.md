@@ -14,6 +14,16 @@ npm pack --dry-run
 
 `npm run verify` performs TypeScript checking, the unit and integration suites, a clean production build, and CLI metadata smoke tests. This project intentionally does not use GitHub Actions.
 
+Publish from an interactive terminal so npm can open its WebAuthn security-key flow:
+
+```bash
+npm publish --access public --registry=https://registry.npmjs.org/
+```
+
+The final registry write requires human proof of presence. Do not pass `--otp` unless the maintainer account is deliberately configured for TOTP, and do not create a bypass-2FA token. If release frequency eventually warrants automation, prefer `npm stage publish` followed by an interactive 2FA approval.
+
+After publication, download the registry tarball, verify its digest and executable mode, run its CLI directly, and only then update the global installation and create the source tag.
+
 ## Test Lanes
 
 ```bash

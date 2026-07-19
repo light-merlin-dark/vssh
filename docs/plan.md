@@ -8,15 +8,14 @@ Release VSSH 2 as a dependable, portable CLI: a guarded shortcut to native OpenS
 
 ## Ground Truth
 
-- The VSSH 2 implementation is clean and pushed on public GitHub `main`. It is
-  installed locally as 2.0.0, but has not been tagged or published; public npm
-  `latest` remains 1.8.3.
+- VSSH 2 is clean and pushed on public GitHub `main`, published publicly as
+  `@light-merlin-dark/vssh@2.0.0`, tagged `v2.0.0`, and installed globally from
+  that exact public registry artifact.
 - Registry routing is correct and credential-separated: npmjs is the default,
   `@light-merlin-dark` is explicitly public in the repo, and private `@stack`
-  packages are host-scoped to `npm.hyper.gdn`. The private token authenticates
-  and resolves `@stack/ui-kit@1.6.7`; the stored npmjs token and exported
-  `NPM_TOKEN` are both rejected by npmjs and must not be substituted across
-  registries.
+  packages are host-scoped to `npm.hyper.gdn`. Public npm authenticates as
+  `light-merlin-dark`; the private token independently authenticates and
+  resolves `@stack/ui-kit@1.6.7`.
 - Transport is native `ssh`/`scp`, with normal host verification and short-lived OpenSSH control connection reuse.
 - Raw mode streams stdin/stdout/stderr and propagates remote exit codes; JSON mode is separated, bounded, and machine-readable.
 - Upload/download are core. `upload --mode <octal>` folds permission setting into the operation over the reused connection.
@@ -25,6 +24,9 @@ Release VSSH 2 as a dependable, portable CLI: a guarded shortcut to native OpenS
 - Audit logs contain only owner-readable bounded metadata, never command text or output.
 - The npm package has zero runtime dependencies.
 - Release verification is local and explicit; this project does not use GitHub Actions.
+- npm publication is interactive and uses the maintainer's WebAuthn security
+  key for proof of presence. VSSH does not use bypass-2FA tokens; staged
+  publishing with human approval is the future automation path if needed.
 - The public root, web, and API consumers are clean and pushed on `main` with
   dev-control v2, stable `.localhost` routing, centralized Stack Admin, and the
   intentional five-plugin `vssh-public` profile.
@@ -37,6 +39,11 @@ Release VSSH 2 as a dependable, portable CLI: a guarded shortcut to native OpenS
 
 - TypeScript typecheck, build, CLI smoke, and the focused unit/integration suite pass.
 - Production `npm audit` reports zero known vulnerabilities.
+- The published npmjs artifact has SHA-1
+  `10371d08159f910df0792dcf3f078604ad5b1dfc`, integrity
+  `sha512-ZkOBdonhKayS5wZLkDPksOfiF6sKKOi6P7HRkVp/63PAtPDwB31spwMSOpFo9a4PECCJapAdQIvFAvIEwG3mdw==`,
+  and executable mode 755. Its downloaded CLI runs as 2.0.0, and the global
+  installation is byte-identical to that registry copy.
 - The actual npm tarball installs and runs under Node.js 18.12.1; its generated executable has the correct mode.
 - A live configured target passed doctor, piped stdin, separated JSON stdout/stderr, non-zero exit propagation, upload/download, and retained compatibility smoke checks.
 - A fresh live production probe passed `upload --mode 600` with exact checksum
@@ -51,10 +58,9 @@ Release VSSH 2 as a dependable, portable CLI: a guarded shortcut to native OpenS
 
 ## Release Follow-up
 
-1. Complete one npmjs web login (`npm login --registry=https://registry.npmjs.org/ --auth-type=web`) or replace only the host-bound `//registry.npmjs.org/:_authToken` entry. Then verify `npm whoami --registry=https://registry.npmjs.org/`, publish `@light-merlin-dark/vssh@2.0.0`, inspect registry metadata/tarball execution, and only then tag and push the corresponding commit. Do not change the working private-registry token or `@stack` scope.
-2. Review `http://vssh.localhost`. Browser Gateway desktop/mobile acceptance and the final blind Eval Gateway packet are green with no deterministic layout defects or blocker/major findings.
-3. `vssh.io` is purchased, registered in Cloudflare, and delegation is proven through authoritative plus public recursive DNS. Prod Control contains the exact apex/`www`/admin edge contract and snapshot rollback; crawler-safe WAF is applied, but DNS remains empty. Provision the centralized-admin secret boundary, prove exact release candidates, and cut over only through the journaled `prod app cutover vssh` path.
-4. Observe real fleet latency and failure telemetry after rollout. Revisit a custom session daemon only if native OpenSSH control reuse is measurably insufficient.
+1. Review `http://vssh.localhost`. Browser Gateway desktop/mobile acceptance and the final blind Eval Gateway packet are green with no deterministic layout defects or blocker/major findings.
+2. `vssh.io` is purchased, registered in Cloudflare, and delegation is proven through authoritative plus public recursive DNS. Prod Control contains the exact apex/`www`/admin edge contract and snapshot rollback; crawler-safe WAF is applied, but DNS remains empty. Provision the centralized-admin secret boundary, prove exact release candidates, and cut over only through the journaled `prod app cutover vssh` path.
+3. Observe real fleet latency and failure telemetry after rollout. Revisit a custom session daemon only if native OpenSSH control reuse is measurably insufficient.
 
 ## Product Boundary
 

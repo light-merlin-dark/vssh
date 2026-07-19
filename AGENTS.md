@@ -112,6 +112,8 @@ src/
 - Keep `README.md`, `CHANGELOG.md`, CLI help, `commands --json`, package metadata, and the operator skill consistent.
 - Run `npm run verify`, `npm audit --omit=dev`, and `npm pack --dry-run` before publishing.
 - Do not add GitHub Actions for this project; release verification is intentionally local and explicit.
+- Publish from an interactive terminal and approve the npm write with the maintainer's WebAuthn security key. Do not use `--otp` unless the npm account is intentionally configured for TOTP.
+- Never create a bypass-2FA npm token for VSSH. If release volume later justifies automation, use npm staged publishing with human 2FA approval.
 - Publishing uses npm; end users must not need Bun.
 - The package must have zero runtime npm dependencies unless a future dependency demonstrably replaces more complexity than it adds.
 
