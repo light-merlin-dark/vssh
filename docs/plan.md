@@ -27,6 +27,13 @@ Release VSSH 2 as a dependable, portable CLI: a guarded shortcut to native OpenS
 - npm publication is interactive and uses the maintainer's WebAuthn security
   key for proof of presence. VSSH does not use bypass-2FA tokens; staged
   publishing with human approval is the future automation path if needed.
+- The repository no longer loads a root `.env`. The stale token-based
+  `make login` path is a fail-closed tombstone and cannot write a bearer token
+  into `~/.npmrc`; `make auth-login` remains the interactive WebAuthn path.
+- VSSH runtime target configuration lives in owner-only
+  `~/.vssh/config.json`. The retired `.env` SSH override was proven identical
+  to that canonical target before removal. Coolify credentials are not part of
+  the VSSH 2 runtime or release contract.
 - The public root, web, and API consumers are clean and pushed on `main` with
   dev-control v2, stable `.localhost` routing, centralized Stack Admin, and the
   intentional five-plugin `vssh-public` profile.
