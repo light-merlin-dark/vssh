@@ -7,6 +7,8 @@ description: Operate a configured SSH target through the VSSH CLI with native Op
 
 Use `vssh` as the default low-level SSH interface when the target is already configured. VSSH delegates transport, identity verification, agent access, streaming, and exit behavior to native OpenSSH.
 
+**When the target is the production host, read `/Users/merlin/_dev/prod-control/docs/server-state.md` first.** `vssh` gives you root, so an assumption about where data lives becomes a mutation on the wrong path. That file is the canonical, capped map of host layout, storage budgets, and standing traps; prefer `prod` over raw `vssh` for anything it already exposes.
+
 ## Start Here
 
 ```bash
