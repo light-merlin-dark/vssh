@@ -1,6 +1,11 @@
 ---
 name: vssh
-description: Operate a configured SSH target through the VSSH CLI with native OpenSSH behavior, safety guardrails, structured output, and file transfer. Use for remote diagnostics, shell commands, production inspection, and uploads/downloads.
+description: Operate a configured SSH target through the VSSH CLI with native
+  OpenSSH behavior, safety guardrails, structured output, and file transfer. Use
+  for remote diagnostics, shell commands, production inspection, and
+  uploads/downloads.
+metadata:
+  skill-sync.visibility: routed
 ---
 
 # VSSH
