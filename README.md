@@ -277,3 +277,7 @@ Publishing uses npm so end users need only Node.js, not Bun.
 ## License
 
 MIT — see [LICENSE](LICENSE).
+
+---
+
+Built by [Robert E. Beckner III (Merlin)](https://rbeckner.com) — more tools and writing at [rbeckner.com/projects/vssh](https://rbeckner.com/projects/vssh/).
