@@ -102,6 +102,16 @@ jobs:
             exit 1
           fi
           echo "OIDC token endpoint present; id-token: write is in effect."
+          # setup-node writes an .npmrc pinning _authToken to NODE_AUTH_TOKEN.
+          # With no token set that expands to an empty credential, and npm can
+          # take "a credential is configured" as reason not to run the OIDC
+          # exchange at all — producing this exact 404. Report it by name and
+          # strip the empty line; a real token would not be empty.
+          NPMRC="${NPM_CONFIG_USERCONFIG:-$HOME/.npmrc}"
+          if [ -f "$NPMRC" ] && grep -qE '_authToken=(\s*|\$\{NODE_AUTH_TOKEN\})$' "$NPMRC"; then
+            echo "note: removing an empty _authToken line from $NPMRC"
+            sed -i -E '/_authToken=(\s*|\$\{NODE_AUTH_TOKEN\})$/d' "$NPMRC"
+          fi
           echo "If publish still 404s, the npm-side trusted publisher record does not match:"
           echo "  repository must be   ${GITHUB_REPOSITORY}"
           echo "  workflow file be     $(basename "${GITHUB_WORKFLOW_REF%%@*}")"
