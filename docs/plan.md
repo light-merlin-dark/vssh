@@ -1,6 +1,22 @@
 # VSSH Engineering Plan
 
-Last grounded: 2026-07-19
+Last grounded: 2026-08-22
+
+## Bun 1.4 source cohort — source-only
+
+- The root development runner is pinned exactly as `bun@1.4.0` through
+  `packageManager`. Publishing and consumer runtime remain Node/npm by product
+  contract; this declaration does not turn VSSH into a Bun runtime package.
+- The existing text `bun.lock` uses `lockfileVersion = 1` and
+  `configVersion = 0`. This is valid, intentional Bun behavior for an existing
+  project: it preserves the hoisted linker default. VSSH is not a workspace,
+  so Bun documents both config versions as hoisted here. Bun 1.4 accepts the
+  lock unchanged under `--frozen-lockfile`; do not rewrite it merely to obtain
+  config version 1.
+- Dev Manager's authoritative deployment inventory observes no VSSH production
+  service. VSSH is an operator CLI and the public `vssh.io` application is a
+  separate consumer. This cohort owns source metadata only; there is no runtime
+  target, staging lane, deployment, or rollback ceremony to invent.
 
 ## Objective
 

@@ -1,6 +1,7 @@
 {
   "name": "@light-merlin-dark/vssh",
   "version": "2.0.0",
+  "packageManager": "bun@1.4.0",
   "description": "Guarded remote command execution and file transfer through native OpenSSH.",
   "bin": {
     "vssh": "dist/index.js"
