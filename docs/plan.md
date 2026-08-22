@@ -17,6 +17,14 @@ Last grounded: 2026-08-22
   service. VSSH is an operator CLI and the public `vssh.io` application is a
   separate consumer. This cohort owns source metadata only; there is no runtime
   target, staging lane, deployment, or rollback ceremony to invent.
+- Source commit `686b598` is accepted and pushed on `origin/main`, but the
+  declared canonical checkout intentionally remains at `fefaa74`: its inherited
+  uncommitted `package.json` adds `build:verified`, and Git correctly refused to
+  overwrite that foreign work during fast-forward. Dev Manager therefore keeps
+  reporting `source_pin_gap` from the canonical surface. Do not mix the landed
+  pin into that dirty file. Once its owner lands or releases the change,
+  fast-forward canonical to `origin/main` and remeasure; no source rebuild or
+  production action is required.
 
 ## Objective
 
