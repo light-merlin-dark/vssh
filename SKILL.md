@@ -60,6 +60,7 @@ vssh --host <host> --user <user> --identity <key> --port <port> '<command>'
 5. Verify every availability-impacting change immediately.
 6. Treat safety checks as guardrails, not a sandbox or authorization boundary.
 7. Never place credentials directly in command text when a file, environment injection, or purpose-built control plane is available.
+8. Read the configuration with `vssh config show`, never by opening `~/.vssh/config.json`. The command reports the effective target value-free; the file is not a display surface, and reading one into a transcript is how a stale 1.x encryption key was disclosed on 2026-08-22.
 
 ## Familiar Commands First
 
