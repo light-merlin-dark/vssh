@@ -42,8 +42,14 @@ jobs:
     # Trusted publishing does not support self-hosted runners.
     runs-on: ubuntu-latest
     steps:
+      # Check out the requested commit, not whatever `main` points at now.
+      # Binding to the branch tip means any commit landed between staging a
+      # release and dispatching it invalidates the dispatch — which is exactly
+      # what happened on the first 2.0.1 attempt. The commit is still required
+      # to be on `main`; that is asserted below rather than assumed.
       - uses: actions/checkout@v7
         with:
+          ref: ${{ inputs.commit }}
           fetch-depth: 0
 
       - uses: actions/setup-node@v7
@@ -58,17 +64,48 @@ jobs:
         with:
           bun-version: 1.4.0
 
-      # Refuse to publish anything other than exactly what was asked for. The
-      # dispatch names a commit and a version; if either disagrees with what is
-      # checked out, stop before the registry is touched.
+      # Refuse to publish anything other than exactly what was asked for: the
+      # checkout must BE the requested commit, that commit must be an ancestor
+      # of `main` (so an unmerged branch cannot be published), and the manifest
+      # must carry the requested version.
       - name: Verify requested source
         env:
           EXPECTED_COMMIT: ${{ inputs.commit }}
           EXPECTED_VERSION: ${{ inputs.version }}
         run: |
           set -euo pipefail
-          test "$GITHUB_SHA" = "$EXPECTED_COMMIT"
+          ACTUAL="$(git rev-parse HEAD)"
+          if [ "$ACTUAL" != "$EXPECTED_COMMIT" ]; then
+            echo "checked out $ACTUAL but the dispatch requested $EXPECTED_COMMIT"
+            exit 1
+          fi
+          git fetch --no-tags origin main
+          if ! git merge-base --is-ancestor "$EXPECTED_COMMIT" origin/main; then
+            echo "$EXPECTED_COMMIT is not an ancestor of main; land it first"
+            exit 1
+          fi
           test "$(node -p "require('./package.json').version")" = "$EXPECTED_VERSION"
+
+      # npm's failure when trusted publishing does not line up is a bare 404 on
+      # the PUT, which reads as "package missing" and sends people looking for a
+      # token. Separate the two causes before publishing, so the log says which
+      # one it is. Reports presence only — an OIDC token is a credential and is
+      # never printed.
+      - name: Preflight trusted publishing
+        run: |
+          set -euo pipefail
+          echo "npm $(npm --version)  (OIDC requires >= 11.5.1)"
+          if [ -z "${ACTIONS_ID_TOKEN_REQUEST_URL:-}" ]; then
+            echo "::error::No OIDC token endpoint. 'id-token: write' is not in effect —"
+            echo "::error::check repository/organization Actions permissions. Publishing"
+            echo "::error::would fail with a misleading 404."
+            exit 1
+          fi
+          echo "OIDC token endpoint present; id-token: write is in effect."
+          echo "If publish still 404s, the npm-side trusted publisher record does not match:"
+          echo "  repository must be   ${GITHUB_REPOSITORY}"
+          echo "  workflow file be     $(basename "${GITHUB_WORKFLOW_REF%%@*}")"
+          echo "  environment must be  (none)"
 
       - run: npm ci
 
