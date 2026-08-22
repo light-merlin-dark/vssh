@@ -20,10 +20,10 @@ export const CONFIG_PATH = process.env.VSSH_CONFIG_PATH
  * `secretFile` at a file, `keyId` at a value-blind identifier. Only a key with a
  * credential word and no location word is treated as holding a value.
  *
- * Matching is token-wise rather than substring so camelCase is seen. A plain
- * `/\bkey\b/` — the shape cf-cli uses — cannot match `encryptionKey`, because
- * `n` and `K` are both word characters and the leading boundary never occurs.
- * That is the exact key this guard exists to catch.
+ * Matching is token-wise rather than substring so camelCase is seen. The obvious
+ * `/\bkey\b/i` cannot match `encryptionKey`: `n` and `K` are both word
+ * characters, so the leading word boundary never occurs. That is the exact key
+ * this guard exists to catch.
  */
 const CREDENTIAL_WORDS = new Set([
   'token', 'tokens', 'secret', 'secrets', 'password', 'passwd', 'passphrase',
@@ -188,14 +188,16 @@ function environmentConfig(): Partial<Config> {
  * Rewrite the config with the credential-shaped keys gone, at 0600, and say so
  * naming the keys and never the values.
  *
- * `normalizeConfig` drops unknown keys in memory, so a credential here was
- * already inert — and that is precisely why one sat in `~/.vssh/config.json`
- * from the 1.x Grafana plugin until 2026-08-22, unread and unreported, until an
- * agent enumerating SSH targets read the file and printed it into a transcript.
- * A loader that silently ignores a key cannot tell anyone it is there.
+ * `normalizeConfig` drops unknown keys in memory, so a credential here is
+ * already inert — and that is exactly how one survives. VSSH 1.x stored an
+ * `encryptionKey` in this file; VSSH 2 removed the reader but not the stored
+ * value, which then sat on disk for months, invisible to `config show` and to
+ * every other value-free surface. The only way to see it was to open the file,
+ * and doing that is what eventually printed it into a transcript. A loader that
+ * silently ignores a key cannot tell anyone it is there.
  *
- * Warn loudly, permit, record (Constitution, Article X): a stale credential must
- * never stop `vssh` from running a command.
+ * Warn loudly, permit, record: a stale credential must never stop `vssh` from
+ * running a command.
  */
 function healCredentialKeys(raw: unknown): void {
   const { cleaned, found } = stripCredentialKeys(raw);

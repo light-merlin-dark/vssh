@@ -12,7 +12,7 @@ metadata:
 
 Use `vssh` as the default low-level SSH interface when the target is already configured. VSSH delegates transport, identity verification, agent access, streaming, and exit behavior to native OpenSSH.
 
-**When the target is the production host, read `/Users/merlin/_dev/prod-control/docs/server-state.md` first.** `vssh` gives you root, so an assumption about where data lives becomes a mutation on the wrong path. That file is the canonical, capped map of host layout, storage budgets, and standing traps; prefer `prod` over raw `vssh` for anything it already exposes.
+**When the target is a production host, read that host's own layout map first.** `vssh` gives you root, so an assumption about where data lives becomes a mutation on the wrong path. Prefer a purpose-built control CLI over raw `vssh` for anything it already exposes.
 
 ## Start Here
 
@@ -67,6 +67,7 @@ vssh --host <host> --user <user> --identity <key> --port <port> '<command>'
 5. Verify every availability-impacting change immediately.
 6. Treat safety checks as guardrails, not a sandbox or authorization boundary.
 7. Never place credentials directly in command text when a file, environment injection, or purpose-built control plane is available.
+8. Read the configuration with `vssh config show`, never by opening `~/.vssh/config.json`. The command reports the effective target value-free; the file is not a display surface, and printing one into a transcript has disclosed a stale key left behind by an earlier version.
 
 ## Familiar Commands First
 

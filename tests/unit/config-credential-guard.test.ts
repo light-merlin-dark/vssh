@@ -7,13 +7,10 @@ import * as path from 'path';
 import { findCredentialKeys, stripCredentialKeys } from '../../src/config';
 
 /**
- * Trap for incident 2026-08-22-vssh-config-encryption-key-transcript-exposure.
- *
- * `~/.vssh/config.json` carried an `encryptionKey` from the 1.x Grafana plugin
- * long after VSSH 2 stopped reading it. `normalizeConfig` dropped it in memory
- * and nothing ever said it was on disk, so the only way to see the file's
- * contents was to read the file — which is what an agent enumerating SSH
- * targets did, printing the value into a transcript.
+ * `~/.vssh/config.json` carried an `encryptionKey` from a 1.x plugin long after
+ * VSSH 2 stopped reading it. `normalizeConfig` dropped it in memory and nothing
+ * ever said it was on disk, so the only way to see the file's contents was to
+ * read the file — which is how the value eventually reached a transcript.
  *
  * The rule under test is therefore not "parse the config" but "a credential in
  * this file is reported and healed off disk, loudly, without blocking a
@@ -72,8 +69,9 @@ describe('credential-shaped key detection', () => {
   it('names encryptionKey, which a word-boundary regex cannot see', () => {
     expect(findCredentialKeys(historicalConfig())).toEqual(['encryptionKey']);
 
-    // The shape cf-cli uses. Recorded so the divergence is deliberate, not drift:
-    // `n` and `K` are both word characters, so the leading boundary never occurs.
+    // The obvious word-boundary shape, asserted so the divergence stays
+    // deliberate: `n` and `K` are both word characters, so the leading boundary
+    // never occurs and this regex silently misses the key it most needs to see.
     expect(/(token|secret|password|credential|bearer|api[_-]?key|\bkey\b)/i.test('encryptionKey'))
       .toBe(false);
   });

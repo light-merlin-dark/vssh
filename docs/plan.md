@@ -13,14 +13,14 @@ Last grounded: 2026-08-22
   so Bun documents both config versions as hoisted here. Bun 1.4 accepts the
   lock unchanged under `--frozen-lockfile`; do not rewrite it merely to obtain
   config version 1.
-- Dev Manager's authoritative deployment inventory observes no VSSH production
+- The authoritative deployment inventory observes no VSSH production
   service. VSSH is an operator CLI and the public `vssh.io` application is a
   separate consumer. This cohort owns source metadata only; there is no runtime
   target, staging lane, deployment, or rollback ceremony to invent.
 - Source commit `686b598` is accepted and pushed on `origin/main`, but the
   declared canonical checkout intentionally remains at `fefaa74`: its inherited
   uncommitted `package.json` adds `build:verified`, and Git correctly refused to
-  overwrite that foreign work during fast-forward. Dev Manager therefore keeps
+  overwrite that foreign work during fast-forward. The inventory therefore keeps
   reporting `source_pin_gap` from the canonical surface. Do not mix the landed
   pin into that dirty file. Once its owner lands or releases the change,
   fast-forward canonical to `origin/main` and remeasure; no source rebuild or
@@ -35,11 +35,10 @@ Release VSSH 2 as a dependable, portable CLI: a guarded shortcut to native OpenS
 - VSSH 2 is clean and pushed on public GitHub `main`, published publicly as
   `@light-merlin-dark/vssh@2.0.0`, tagged `v2.0.0`, and installed globally from
   that exact public registry artifact.
-- Registry routing is correct and credential-separated: npmjs is the default,
-  `@light-merlin-dark` is explicitly public in the repo, and private `@stack`
-  packages are host-scoped to `npm.hyper.gdn`. Public npm authenticates as
-  `light-merlin-dark`; the private token independently authenticates and
-  resolves `@stack/ui-kit@1.6.7`.
+- Registry routing is correct and credential-separated: npmjs is the default and
+  `@light-merlin-dark` is explicitly public in the repo. Any unrelated private
+  scope resolves through its own host-scoped registry and its own token, which
+  authenticates independently of the public one.
 - Transport is native `ssh`/`scp`, with normal host verification and short-lived OpenSSH control connection reuse.
 - Raw mode streams stdin/stdout/stderr and propagates remote exit codes; JSON mode is separated, bounded, and machine-readable.
 - Upload/download are core. `upload --mode <octal>` folds permission setting into the operation over the reused connection.

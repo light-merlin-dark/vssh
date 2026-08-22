@@ -1,5 +1,32 @@
 # VSSH Development Guide
 
+> ## ⚠️ THIS IS A PUBLIC OPEN-SOURCE REPOSITORY
+>
+> `github.com/light-merlin-dark/vssh` is **public**. Every tracked file, every
+> commit message, and the whole history are world-readable and permanently so —
+> untracking a file later does not remove it from history.
+>
+> Before you write anything here, including a commit message:
+>
+> - **No local paths.** Never `/Users/<name>/...`. Refer to repositories and
+>   documents by name or role, not by where they sit on someone's disk.
+> - **No private infrastructure.** No internal hostnames, registry or service
+>   domains, host IPs, account names, or private repository names.
+> - **No estate-specific operator guidance.** Write for a stranger running VSSH
+>   against their own servers. Guidance that only makes sense inside one
+>   operator's fleet belongs in that operator's private tooling.
+> - **No internal incident identifiers.** Describe a defect by its mechanism —
+>   that is the part a reader can use anyway. Do not cite private incident
+>   records, dated internal events, or sibling private tools by name.
+> - **No credentials, ever**, and no fixture that looks like one without an
+>   obvious `NOT-A-REAL` marker.
+>
+> `CLAUDE.md` is a gitignored local copy of this file, so it is the one place
+> local-only notes may live. Keep the two in sync on everything else.
+>
+> The VSSH marketing site is a **separate private repository**; do not describe
+> its contents or location here.
+
 ## Product Contract
 
 - Brand: `VSSH`
@@ -119,6 +146,6 @@ src/
 
 ## Public Site Contract
 
-The public consumer lives at `/Users/merlin/_dev/vssh-public`.
+The marketing site is maintained separately from this repository.
 
-When product positioning changes here, update its `AGENTS.md` in the same work. Homepage copy and structure remain intentionally controlled in the public app; do not auto-rewrite or deploy it as a side effect of CLI work.
+When product positioning changes here, update the site in the same work. Its copy and structure are intentionally controlled by hand; do not auto-rewrite or deploy it as a side effect of CLI work.
