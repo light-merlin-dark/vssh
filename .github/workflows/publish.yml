@@ -112,7 +112,11 @@ jobs:
             echo "note: removing an empty _authToken line from $NPMRC"
             sed -i -E '/_authToken=(\s*|\$\{NODE_AUTH_TOKEN\})$/d' "$NPMRC"
           fi
-          echo "If publish still 404s, the npm-side trusted publisher record does not match:"
+          # Measured 2026-08-22: with no trusted publisher record, npm does not
+          # attempt the OIDC exchange at all — it falls back to token auth and
+          # fails ENEEDAUTH (or 404 if a stale empty credential is present).
+          # So ENEEDAUTH here means "no record", not "needs a token".
+          echo "If publish fails ENEEDAUTH or 404, the npm-side record does not match:"
           echo "  repository must be   ${GITHUB_REPOSITORY}"
           echo "  workflow file be     $(basename "${GITHUB_WORKFLOW_REF%%@*}")"
           echo "  environment must be  (none)"

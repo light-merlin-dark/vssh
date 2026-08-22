@@ -15,20 +15,42 @@ npm error code E404
 npm error 404 Not Found - PUT https://registry.npmjs.org/@light-merlin-dark%2fvssh
 ```
 
-That is not a permissions bug or a workflow bug. It is what npm returns when
-**no trusted publisher record exists** for the package: there is no OIDC
-identity to match, so the registry declines to confirm the package at all. The
-misleading `404` is why the workflow header says so explicitly.
+That is not a permissions bug or a workflow bug, and four dispatches narrowed it
+to one cause. The workflow side is **measured correct**: the preflight reports
+npm `11.17.0` (OIDC needs `>= 11.5.1`) and confirms the OIDC token endpoint is
+present, so `id-token: write` is in effect. A stale empty `_authToken` written by
+`setup-node`'s `registry-url` was found and stripped — and doing so changed the
+error from `E404` to `ENEEDAUTH`.
+
+That change is the diagnosis. **npm only attempts the OIDC exchange when the
+registry tells it the package has a trusted publisher.** Falling back to token
+auth means the registry offered no such record, so `ENEEDAUTH` here means "no
+matching trusted publisher", not "needs a token".
 
 **The remaining step is on npmjs.com and only the maintainer can do it.** On the
 package's Settings → Trusted Publisher, add a GitHub Actions publisher naming
 organization `light-merlin-dark`, repository `vssh`, workflow file
 `publish.yml`, with no environment. Then re-dispatch:
 
+The three values must match exactly, and the workflow prints them itself in the
+preflight step so there is nothing to guess:
+
+| Field | Value |
+|---|---|
+| Repository | `light-merlin-dark/vssh` |
+| Workflow filename | `publish.yml` |
+| Environment | *(leave empty)* |
+
+Then dispatch against the current `main` tip:
+
 ```
 gh workflow run Publish --repo light-merlin-dark/vssh --ref main \
-  -f version=2.0.1 -f commit=a13b7eebfdff2e38e9845e239702ac98e73dfe49
+  -f version=2.0.1 -f commit=$(git rev-parse origin/main)
 ```
+
+The commit no longer has to be the branch tip — the job checks out exactly the
+commit named and asserts it is an ancestor of `main` — but it must be a commit
+that is already landed.
 
 Do not resolve this by creating an npm token. A token would be a standing
 credential for a package that is meant to have none, and `2.0.0` — published
