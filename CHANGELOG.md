@@ -5,7 +5,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.0.0] - Unreleased
+## [2.0.1] - 2026-08-22
+
+### Security
+
+- The config loader now reports and heals credential-shaped keys instead of
+  silently ignoring them. VSSH 1.x stored an `encryptionKey` in
+  `~/.vssh/config.json` for its encrypted plugin credential storage; 2.0.0
+  removed the reader but not the stored value, so the key stayed on disk,
+  inert but plaintext, and invisible to `vssh config show` and every other
+  value-free surface. A loader that silently drops an unknown key cannot tell
+  anyone it is there. On load, such keys are now stripped, the file is rewritten
+  owner-only, and a warning names the keys — never the values. Unrelated keys are
+  preserved. `saveConfig` refuses to write one.
+- A config file with group- or world-readable permissions is tightened to `0600`
+  on load.
+- Detection matches key names token-wise, so camelCase is seen. The obvious
+  `/\bkey\b/i` cannot match `encryptionKey` — `n` and `K` are both word
+  characters, so the leading boundary never occurs. Keys that name a location
+  rather than a value (`keyPath`, `keyId`, `secretFile`) are left alone.
+
+### Changed
+
+- Releases now publish through npm trusted publishing (OIDC), so every artifact
+  carries SLSA provenance and no npm token exists for this package. Publishing is
+  dispatched by hand against an exact version and an exact `main` commit.
+- The operator skill states that configuration is read with `vssh config show`,
+  never by opening `~/.vssh/config.json`.
+
+## [2.0.0] - 2026-07-19
 
 ### Changed
 

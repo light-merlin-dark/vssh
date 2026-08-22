@@ -1,0 +1,88 @@
+# Publish to npmjs.org through npm trusted publishing (OIDC).
+#
+# There is no NPM_TOKEN, and there must never be one. npm mints a short-lived
+# credential from this workflow's own OIDC identity, which is what `id-token:
+# write` below buys — without it the publish fails with a 401/404 that reads
+# like a permissions problem and is not one.
+#
+# ONE-TIME SETUP, on npmjs.com, by the maintainer: under the package's Settings
+# → Trusted Publisher, name this repository (`light-merlin-dark/vssh`) and this
+# workflow's filename (`publish.yml`). Until that record exists the workflow
+# cannot publish and should not be expected to. It is also what makes a token
+# unnecessary, so do it rather than reaching for one.
+#
+# Publishing is deliberately manual and bound to an exact commit and an exact
+# version: a tag push is easy to fire by accident, and a release that cannot
+# name the commit it came from is not auditable.
+name: Publish
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Exact package version to publish
+        required: true
+        type: string
+      commit:
+        description: Exact main-branch commit to publish
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: npm-publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: github.ref == 'refs/heads/main'
+    # Trusted publishing does not support self-hosted runners.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+          package-manager-cache: false
+
+      # Tests run under Bun, pinned to the same version as `packageManager`.
+      # End users still need only Node; this is a development dependency.
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.0
+
+      # Refuse to publish anything other than exactly what was asked for. The
+      # dispatch names a commit and a version; if either disagrees with what is
+      # checked out, stop before the registry is touched.
+      - name: Verify requested source
+        env:
+          EXPECTED_COMMIT: ${{ inputs.commit }}
+          EXPECTED_VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          test "$GITHUB_SHA" = "$EXPECTED_COMMIT"
+          test "$(node -p "require('./package.json').version")" = "$EXPECTED_VERSION"
+
+      - run: npm ci
+
+      # The full local gate — lint, tests, build, smoke, and audit — run here
+      # explicitly rather than left to fire implicitly during publish, so a
+      # failure is attributable to a step instead of to `npm publish`.
+      - run: npm run prepublishOnly
+
+      - name: Verify reproducible tracked output
+        run: git diff --exit-code
+
+      - run: npm pack --dry-run --json
+
+      # `--ignore-scripts` because prepublishOnly already ran above; without it
+      # the whole gate runs a second time.
+      - name: Publish through npm trusted publishing
+        run: npm publish --access public --ignore-scripts

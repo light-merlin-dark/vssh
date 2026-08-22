@@ -138,10 +138,10 @@ src/
 
 - Keep `README.md`, `CHANGELOG.md`, CLI help, `commands --json`, package metadata, and the operator skill consistent.
 - Run `npm run verify`, `npm audit --omit=dev`, and `npm pack --dry-run` before publishing.
-- Do not add GitHub Actions for this project; release verification is intentionally local and explicit.
-- Publish from an interactive terminal and approve the npm write with the maintainer's WebAuthn security key. Do not use `--otp` unless the npm account is intentionally configured for TOTP.
-- Never create a bypass-2FA npm token for VSSH. If release volume later justifies automation, use npm staged publishing with human 2FA approval.
-- Publishing uses npm; end users must not need Bun.
+- **Publish through npm trusted publishing**, via the `Publish` workflow. It is dispatched by hand and takes an exact version and an exact `main` commit, and refuses to run if either disagrees with what is checked out. Releases are therefore auditable back to a commit, and every artifact carries SLSA provenance.
+- **Never create an npm token for VSSH — not a bypass-2FA token, not any token.** Trusted publishing mints a short-lived credential from the workflow's OIDC identity, so a stored token would be a standing credential that buys nothing. Reaching for one means the trusted-publisher record on npmjs.com is missing; create that instead.
+- CI exists for this one purpose. This is a narrowing of the older "no GitHub Actions here" rule, not an opening: release verification stays the same explicit local gate (`prepublishOnly`), and the workflow runs exactly that gate rather than a second, divergent one. Do not add unrelated workflows.
+- Publishing uses npm; end users must not need Bun. Bun is a development dependency, pinned in CI to the `packageManager` version.
 - The package must have zero runtime npm dependencies unless a future dependency demonstrably replaces more complexity than it adds.
 
 ## Public Site Contract

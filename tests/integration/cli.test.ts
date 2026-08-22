@@ -7,6 +7,13 @@ import { spawnSync } from 'child_process';
 const cliPath = path.join(import.meta.dir, '../../src/index.ts');
 const fakeBin = path.join(import.meta.dir, '../fixtures/fake-bin');
 
+// Read from the manifest rather than hardcoding: the assertion is that the CLI
+// reports the version it ships as, not that the version is any given string. A
+// literal here turns every release into a test failure.
+const packageVersion = JSON.parse(
+  readFileSync(path.join(import.meta.dir, '../../package.json'), 'utf8')
+).version as string;
+
 describe('VSSH CLI', () => {
   let home: string;
   let sshLog: string;
@@ -150,7 +157,7 @@ describe('VSSH CLI', () => {
     expect(execution.status).toBe(0);
     const output = JSON.parse(execution.stdout);
     expect(output.schemaVersion).toBe(1);
-    expect(output.version).toBe('2.0.0');
+    expect(output.version).toBe(packageVersion);
     expect(output.defaultCommand).toBe('exec');
     expect(output.globalOptions.some((option: { name: string }) => option.name === '--json')).toBe(true);
     expect(output.commands.find((command: { name: string }) => command.name === 'upload')).toMatchObject({
