@@ -2,6 +2,38 @@
 
 Last grounded: 2026-08-22
 
+## 2.0.1 is staged and blocked on one human step
+
+`2.0.1` is committed on `main` at `a13b7ee` with the config credential guard.
+The `Publish` workflow ran against that exact commit and **passed every gate** —
+source verification, `npm ci`, `prepublishOnly` (lint, 36 tests, build, smoke,
+`0 vulnerabilities`), reproducible-output check, and `npm pack`. It failed only
+at the registry:
+
+```
+npm error code E404
+npm error 404 Not Found - PUT https://registry.npmjs.org/@light-merlin-dark%2fvssh
+```
+
+That is not a permissions bug or a workflow bug. It is what npm returns when
+**no trusted publisher record exists** for the package: there is no OIDC
+identity to match, so the registry declines to confirm the package at all. The
+misleading `404` is why the workflow header says so explicitly.
+
+**The remaining step is on npmjs.com and only the maintainer can do it.** On the
+package's Settings → Trusted Publisher, add a GitHub Actions publisher naming
+organization `light-merlin-dark`, repository `vssh`, workflow file
+`publish.yml`, with no environment. Then re-dispatch:
+
+```
+gh workflow run Publish --repo light-merlin-dark/vssh --ref main \
+  -f version=2.0.1 -f commit=a13b7eebfdff2e38e9845e239702ac98e73dfe49
+```
+
+Do not resolve this by creating an npm token. A token would be a standing
+credential for a package that is meant to have none, and `2.0.0` — published
+before this route existed — is the only release without provenance.
+
 ## Bun 1.4 source cohort — source-only
 
 - The root development runner is pinned exactly as `bun@1.4.0` through
