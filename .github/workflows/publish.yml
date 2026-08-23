@@ -112,10 +112,17 @@ jobs:
             echo "note: removing an empty _authToken line from $NPMRC"
             sed -i -E '/_authToken=(\s*|\$\{NODE_AUTH_TOKEN\})$/d' "$NPMRC"
           fi
-          # Measured 2026-08-22: with no trusted publisher record, npm does not
-          # attempt the OIDC exchange at all — it falls back to token auth and
-          # fails ENEEDAUTH (or 404 if a stale empty credential is present).
-          # So ENEEDAUTH here means "no record", not "needs a token".
+          # Measured 2026-08-22, from the verbose publish log: GitHub issues the
+          # OIDC token (GET .../idtoken?audience=npm:registry.npmjs.org -> 200),
+          # then npm POSTs it to
+          #   /-/npm/v1/oidc/token/exchange/package/<pkg>
+          # which answers 404 with "OIDC token exchange error - package not
+          # found". That endpoint is per-package, and "package not found" is
+          # npm's wording for "no trusted publisher registered for it" — the
+          # package itself is public and obviously exists. npm then falls back
+          # to token auth and reports ENEEDAUTH.
+          #
+          # So ENEEDAUTH here means "no record", never "create a token".
           echo "If publish fails ENEEDAUTH or 404, the npm-side record does not match:"
           echo "  repository must be   ${GITHUB_REPOSITORY}"
           echo "  workflow file be     $(basename "${GITHUB_WORKFLOW_REF%%@*}")"
@@ -146,5 +153,4 @@ jobs:
           set -o pipefail
           npm publish --access public --ignore-scripts --loglevel verbose 2>&1 \
             | grep -iE 'oidc|trusted|provenance|exchange|attestation|npm (http|error|warn)|4[0-9]{2}|registry' \
-            | sed -E 's#(eyJ[A-Za-z0-9_-]{10,})#[REDACTED-JWT]#g; s#(npm_[A-Za-z0-9]{10,})#[REDACTED-TOKEN]#g; s#(([Bb]earer|[Tt]oken|[Aa]uthorization)[=: ]+)\S+#\1[REDACTED]#g' \
-            | tail -60
+            | sed -E 's#(eyJ[A-Za-z0-9_-]{10,})#[REDACTED-JWT]#g; s#(npm_[A-Za-z0-9]{10,})#[REDACTED-TOKEN]#g; s#(([Bb]earer|[Tt]oken|[Aa]uthorization)[=:]\s*)\S+#\1[REDACTED]#g'

@@ -22,10 +22,20 @@ present, so `id-token: write` is in effect. A stale empty `_authToken` written b
 `setup-node`'s `registry-url` was found and stripped — and doing so changed the
 error from `E404` to `ENEEDAUTH`.
 
-That change is the diagnosis. **npm only attempts the OIDC exchange when the
-registry tells it the package has a trusted publisher.** Falling back to token
-auth means the registry offered no such record, so `ENEEDAUTH` here means "no
-matching trusted publisher", not "needs a token".
+A verbose publish then settled it outright:
+
+```
+GET  .../idtoken/…?audience=npm%3Aregistry.npmjs.org                      200
+POST https://registry.npmjs.org/-/npm/v1/oidc/token/exchange/package/…    404
+npm verbose oidc Failed token exchange … OIDC token exchange error - package not found
+npm error code ENEEDAUTH
+```
+
+GitHub issues the OIDC token; npm's **per-package** exchange endpoint rejects it
+with *"package not found"*. The package is public and plainly exists, so that
+phrase is npm's wording for **no trusted publisher is registered for it**. npm
+then falls back to token auth, which is where `ENEEDAUTH` comes from — it means
+"no record", never "create a token".
 
 **The remaining step is on npmjs.com and only the maintainer can do it.** On the
 package's Settings → Trusted Publisher, add a GitHub Actions publisher naming
