@@ -26,6 +26,8 @@ interface ParsedGlobalOptions {
   timeoutMs?: number;
   local?: boolean;
   noAudit: boolean;
+  /** Operator-supplied justification that lets ONE blocked command through, recorded in the audit log. */
+  allowGuard?: string;
   literalCommand: boolean;
   forceRaw: boolean;
   overrides: ConfigOverrides;
@@ -40,6 +42,7 @@ const GLOBAL_OPTIONS = [
   { name: '--identity', aliases: ['-i'], value: '<path>', description: 'Override the private key' },
   { name: '--port', aliases: ['-p'], value: '<port>', description: 'Override the SSH port' },
   { name: '--no-audit', aliases: [], value: null, description: 'Do not write bounded command metadata' },
+  { name: '--allow-guard', aliases: [], value: '<reason>', description: 'Let one guard-blocked command run; the reason is written to the audit log' },
   { name: '--local', aliases: [], value: null, description: 'Run through the local shell for compatibility' },
   { name: '--remote', aliases: [], value: null, description: 'Override local mode and use SSH' },
   { name: '--command', aliases: ['-c'], value: '<command>', description: 'Pass one literal command string' },
@@ -195,6 +198,7 @@ Core options:
   --identity, -i <path>  Override the private key
   --port, -p <port>      Override the SSH port
   --no-audit             Do not write bounded command metadata
+  --allow-guard <reason> Let one guard-blocked command run; reason is audited
   --local                Compatibility: run through the local shell
   --                      Treat the remaining arguments as a raw command
 
@@ -231,6 +235,7 @@ function parseGlobalOptions(argv: string[]): ParsedGlobalOptions {
   let timeoutMs: number | undefined;
   let local: boolean | undefined;
   let noAudit = false;
+  let allowGuard: string | undefined;
   let literalCommand = false;
   let forceRaw = false;
 
@@ -244,6 +249,12 @@ function parseGlobalOptions(argv: string[]): ParsedGlobalOptions {
     if (current === '--json') { json = true; continue; }
     if (current === '--tty' || current === '-t') { tty = true; continue; }
     if (current === '--no-audit') { noAudit = true; continue; }
+    if (current === '--allow-guard') {
+      const reason = remaining[++index]?.trim();
+      if (!reason || reason.length < 8) throw new Error('--allow-guard requires a reason of at least 8 characters');
+      allowGuard = reason;
+      continue;
+    }
     if (current === '--local') { local = true; continue; }
     if (current === '--remote') { local = false; continue; }
     if (current === '--timeout') {
@@ -295,7 +306,7 @@ function parseGlobalOptions(argv: string[]): ParsedGlobalOptions {
     args.splice(args.indexOf('--json'), 1);
   }
 
-  return { args, json, tty, timeoutMs, local, noAudit, literalCommand, forceRaw, overrides };
+  return { args, json, tty, timeoutMs, local, noAudit, allowGuard, literalCommand, forceRaw, overrides };
 }
 
 function requireConfig(overrides: ConfigOverrides): Config {
@@ -366,7 +377,8 @@ function audit(
   result: CommandResult,
   transport: 'ssh' | 'local' | 'scp',
   disabled: boolean,
-  blocked = false
+  blocked = false,
+  guardOverride?: { rule: string; reason: string }
 ): void {
   if (disabled) return;
   try {
@@ -377,6 +389,7 @@ function audit(
       durationMs: result.durationMs,
       blocked,
       timedOut: result.timedOut,
+      guardOverride,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
@@ -550,7 +563,17 @@ async function main(): Promise<void> {
       : [name, ...commandArguments];
   const command = commandFromArgs(rawArgs, parsed.literalCommand);
   const guard = new CommandGuardService().checkCommand(command);
-  if (guard.isBlocked) {
+  // A guard block is a guardrail, not an authorization boundary (README). An
+  // operator who has the authority to stop a critical service still needs a
+  // sanctioned way through that leaves a record; otherwise the block is routed
+  // around with an uploaded script and the audit log never learns.
+  const override = guard.isBlocked && parsed.allowGuard
+    ? { rule: guard.reasons.join('; '), reason: parsed.allowGuard }
+    : undefined;
+  if (override && !parsed.json) {
+    process.stderr.write(`VSSH guard overridden (${override.rule}): ${override.reason}\n`);
+  }
+  if (guard.isBlocked && !override) {
     const blocked: CommandResult = {
       command,
       stdout: '',
@@ -566,7 +589,7 @@ async function main(): Promise<void> {
     return;
   }
 
-  if (!parsed.json) {
+  if (!parsed.json && !override) {
     for (const warning of guard.reasons) process.stderr.write(`VSSH ${warning}\n`);
   }
   const result = local
@@ -577,8 +600,8 @@ async function main(): Promise<void> {
         tty: parsed.tty,
         forwardStdin: true,
       });
-  outputResult(result, local ? 'local' : 'ssh', parsed.json, guard.reasons);
-  audit(result, local ? 'local' : 'ssh', parsed.noAudit);
+  outputResult(result, local ? 'local' : 'ssh', parsed.json, override ? [] : guard.reasons);
+  audit(result, local ? 'local' : 'ssh', parsed.noAudit, false, override);
   process.exitCode = result.exitCode;
 }
 

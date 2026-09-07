@@ -1,6 +1,6 @@
 {
   "name": "@light-merlin-dark/vssh",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "packageManager": "bun@1.4.0",
   "description": "Guarded remote command execution and file transfer through native OpenSSH.",
   "bin": {
@@ -16,7 +16,8 @@
     "smoke": "node dist/index.js --version && node dist/index.js commands --json",
     "verify": "npm run lint && npm test && npm run build && npm run smoke",
     "prepack": "npm run build",
-    "prepublishOnly": "npm run verify && npm audit --omit=dev"
+    "prepublishOnly": "npm run verify && npm audit --omit=dev",
+    "build:verified": "node scripts/build-verified.mjs"
   },
   "keywords": [
     "ssh",

@@ -224,6 +224,8 @@ narrow and are not user-customizable.
 
 These checks are guardrails, not a shell parser, policy engine, authorization boundary, or sandbox. Review commands with the same care you would use with `ssh`.
 
+An operator who genuinely needs a blocked operation (for example stopping Docker during a planned data-directory relocation) passes `--allow-guard "<reason>"` for that one invocation. The reason must be at least 8 characters; VSSH prints which rule was overridden and records `guardOverridden`, the rule, and the reason in the audit log. Without the flag the block stands, so a script that routes around the guard is a defect, not a workaround.
+
 Audit records are JSON Lines at `~/.vssh/data/logs/commands.jsonl`. Each record contains timestamp, transport, duration, exit status, command byte length, and a SHA-256 command hash. Command text and command output are never logged. Use `--no-audit` when even metadata should not be recorded.
 
 ## Discovery and diagnostics

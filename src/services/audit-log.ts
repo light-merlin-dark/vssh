@@ -10,6 +10,8 @@ export interface AuditEvent {
   durationMs: number;
   blocked?: boolean;
   timedOut?: boolean;
+  /** Set when --allow-guard let a blocked command run: which rule, and the operator's reason. */
+  guardOverride?: { rule: string; reason: string };
 }
 
 export function writeAuditEvent(event: AuditEvent): void {
@@ -24,6 +26,11 @@ export function writeAuditEvent(event: AuditEvent): void {
     durationMs: event.durationMs,
     ...(event.blocked && { blocked: true }),
     ...(event.timedOut && { timedOut: true }),
+    ...(event.guardOverride && {
+      guardOverridden: true,
+      guardRule: event.guardOverride.rule.slice(0, 200),
+      overrideReason: event.guardOverride.reason.slice(0, 200),
+    }),
   };
 
   fs.appendFileSync(logPath, `${JSON.stringify(entry)}\n`, { mode: 0o600 });

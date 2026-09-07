@@ -87,6 +87,28 @@ describe('VSSH CLI', () => {
     expect(() => readFileSync(sshLog, 'utf8')).toThrow();
   });
 
+  it('lets one blocked command through with --allow-guard and audits the reason', () => {
+    // The fake ssh really executes the command, so wrap the blocked text in an
+    // echo: the guard matches the text, the shell only prints it.
+    const execution = run(['--allow-guard', 'planned container-root relocation', 'echo systemctl stop docker']);
+    expect(execution.status).toBe(0);
+    expect(execution.stdout).toContain('systemctl stop docker');
+    expect(execution.stderr).toContain('VSSH guard overridden (Stopping critical services is dangerous): planned container-root relocation');
+    expect(readFileSync(sshLog, 'utf8')).toContain('systemctl stop docker');
+    const audit = readFileSync(path.join(home, 'data', 'logs', 'commands.jsonl'), 'utf8');
+    const entry = JSON.parse(audit.trim().split('\n').at(-1) as string);
+    expect(entry).toMatchObject({ guardOverridden: true, overrideReason: 'planned container-root relocation' });
+    expect(entry.guardRule).toContain('Stopping critical services');
+    expect(audit).not.toContain('systemctl');
+  });
+
+  it('refuses --allow-guard without a real reason', () => {
+    const execution = run(['--allow-guard', 'x', 'echo systemctl stop docker']);
+    expect(execution.status).toBe(1);
+    expect(execution.stderr).toContain('--allow-guard requires a reason');
+    expect(() => readFileSync(sshLog, 'utf8')).toThrow();
+  });
+
   it('applies the command guard to legacy run aliases', () => {
     const execution = run(['run', 'rm -fr /']);
     expect(execution.status).toBe(126);
